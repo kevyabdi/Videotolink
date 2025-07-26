@@ -16,7 +16,7 @@ API_HASH = os.getenv("API_HASH", "")
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 
 # Admin user ID (replace with your Telegram user ID)
-ADMIN_USER_ID = 000000000  # Replace with your actual Telegram user ID
+ADMIN_USER_ID = 1096693642  # Replace with your actual Telegram user ID
 
 # Initialize the Pyrogram client
 app = Client("filetobot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
