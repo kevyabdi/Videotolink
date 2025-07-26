@@ -66,6 +66,11 @@ def home():
                     <p>No external hosting required. Files are stored using Telegram's infrastructure.</p>
                 </div>
                 
+                <div class="feature">
+                    <h3>🚀 New Features</h3>
+                    <p>• Duplicate message prevention<br>• Command cooldowns<br>• Enhanced admin controls<br>• Session management</p>
+                </div>
+                
                 <p style="margin-top: 30px; opacity: 0.8;">
                     Find your bot on Telegram and start sharing files!
                 </p>
