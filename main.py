@@ -554,7 +554,7 @@ async def text_handler(client, message):
     if is_banned(message.from_user.id):
         await message.reply_text("❌ You have been banned from using this bot.")
         logger.info(f"Banned user {message.from_user.id} tried to send text message")
-        return
+        
         
     
         
