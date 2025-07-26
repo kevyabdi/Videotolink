@@ -558,7 +558,7 @@ async def text_handler(client, message):
         
     
         
-    )
+    
 
 if __name__ == "__main__":
     logger.info("Starting File Saver Bot Sug waxyar...")
