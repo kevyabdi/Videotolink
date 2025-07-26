@@ -11,12 +11,12 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Get credentials from environment variables
-API_ID = int(os.getenv("API_ID", "0"))
-API_HASH = os.getenv("API_HASH", "")
-BOT_TOKEN = os.getenv("BOT_TOKEN", "")
+API_ID = int(os.getenv("API_ID", "26176218"))
+API_HASH = os.getenv("API_HASH", "4a50bc8acb0169930f5914eb88091736")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "6847890390:AAFs8vZh4pkQArOCSEQIYzYcGVUht0aPNEA")
 
 # Admin user ID (replace with your Telegram user ID)
-ADMIN_USER_ID = 000000000  # Replace with your actual Telegram user ID
+ADMIN_USER_ID = 1096693642  # Replace with your actual Telegram user ID
 
 # Initialize the Pyrogram client
 app = Client("filetobot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
