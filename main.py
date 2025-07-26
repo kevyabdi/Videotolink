@@ -10,13 +10,13 @@ from datetime import datetime
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Get credentials from environment variables
+# Get credentials from environment variables with fallbacks
 API_ID = int(os.getenv("API_ID", "26176218"))
 API_HASH = os.getenv("API_HASH", "4a50bc8acb0169930f5914eb88091736")
-BOT_TOKEN = os.getenv("BOT_TOKEN", "6847890390:AAG7sASVY1IJbrbjX6GT5CCXUxD7_mtY_VA")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "6946655182:AAEzKh7e0lPz2of03897CVpRq8-tMzsjM24")
 
 # Admin user ID (replace with your Telegram user ID)
-ADMIN_USER_ID = 000000000  # Replace with your actual Telegram user ID
+ADMIN_USER_ID = 1096693642  # Replace with your actual Telegram user ID
 
 # Initialize the Pyrogram client
 app = Client("filetobot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
@@ -179,7 +179,6 @@ async def file_handler(client, message):
             await message.reply_text("❌ You have been banned from using this bot.")
             logger.info(f"Banned user {message.from_user.id} tried to upload file")
             return
-
         file = None
         file_type = ""
         display_type = "📁 File"
@@ -569,12 +568,9 @@ async def text_handler(client, message):
 if __name__ == "__main__":
     logger.info("Starting File Saver Bot...")
     try:
-        # Import and start the keep-alive server (optional for some deployments)
-        try:
-            from keep_alive import keep_alive
-            keep_alive()
-        except ImportError:
-            logger.info("keep_alive module not found, skipping web server")
+        # Import and start the keep-alive server
+        from keep_alive import keep_alive
+        keep_alive()
         
         # Start the bot
         app.run()
