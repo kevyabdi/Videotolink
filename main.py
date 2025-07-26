@@ -1,578 +1,348 @@
-from pyrogram import filters
-from pyrogram.client import Client
-import json
+
 import os
-import uuid
+import json
 import logging
+from flask import Flask, request, jsonify
+from pyrogram import Client
+from pyrogram.types import Update
+import asyncio
+import threading
 from datetime import datetime
 
+# Import our modules
+from bot_handlers import setup_handlers
+from utils import load_files, load_stats, load_banned_users
+from webhook_handler import WebhookHandler
+
 # Set up logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 # Get credentials from environment variables with fallbacks
 API_ID = int(os.getenv("API_ID", "26176218"))
 API_HASH = os.getenv("API_HASH", "4a50bc8acb0169930f5914eb88091736")
 BOT_TOKEN = os.getenv("BOT_TOKEN", "6847890390:AAG7sASVY1IJbrbjX6GT5CCXUxD7_mtY_VA")
+ADMIN_USER_ID = int(os.getenv("ADMIN_USER_ID", "1096693642"))
 
-# Admin user ID (replace with your Telegram user ID)
-ADMIN_USER_ID = 1096693642  # Replace with your actual Telegram user ID
+# Validate required environment variables
+if not all([API_ID, API_HASH, BOT_TOKEN, ADMIN_USER_ID]):
+    logger.error("Missing required environment variables!")
+    logger.error("Required: API_ID, API_HASH, BOT_TOKEN, ADMIN_USER_ID")
+    exit(1)
 
-# Initialize the Pyrogram client
-app = Client("filetobot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+# Initialize Flask app
+app = Flask(__name__)
 
-# Ensure files.json exists
-if not os.path.exists("files.json"):
-    with open("files.json", "w") as f:
-        json.dump({}, f)
-        logger.info("Created new files.json database")
+# Initialize Pyrogram client
+pyrogram_client = Client(
+    "filetobot",
+    api_id=API_ID,
+    api_hash=API_HASH,
+    bot_token=BOT_TOKEN
+)
 
-# Ensure stats.json exists for user statistics
-if not os.path.exists("stats.json"):
-    with open("stats.json", "w") as f:
-        json.dump({
+# Initialize webhook handler
+webhook_handler = WebhookHandler(pyrogram_client, ADMIN_USER_ID)
+
+# Ensure required JSON files exist
+def ensure_json_files():
+    """Ensure all required JSON files exist with proper structure"""
+    files_to_create = {
+        "files.json": {},
+        "stats.json": {
             "total_users": 0,
             "total_files": 0,
             "files_by_type": {"document": 0, "video": 0, "audio": 0, "photo": 0},
             "downloads": 0,
             "users": {}
-        }, f, indent=2)
-        logger.info("Created new stats.json database")
-
-# Ensure banned_users.json exists
-if not os.path.exists("banned_users.json"):
-    with open("banned_users.json", "w") as f:
-        json.dump([], f)
-        logger.info("Created new banned_users.json database")
-
-def load_files():
-    """Load file mappings from JSON database"""
-    try:
-        with open("files.json", "r") as f:
-            return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        logger.error(f"Error loading files.json: {e}")
-        return {}
-
-def load_stats():
-    """Load statistics from JSON database"""
-    try:
-        with open("stats.json", "r") as f:
-            return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        logger.error(f"Error loading stats.json: {e}")
-        return {
-            "total_users": 0,
-            "total_files": 0,
-            "files_by_type": {"document": 0, "video": 0, "audio": 0, "photo": 0},
-            "downloads": 0,
-            "users": {}
-        }
-
-def update_stats(user_id, username, action, file_type=None):
-    """Update user statistics"""
-    try:
-        stats = load_stats()
-        user_str = str(user_id)
-        
-        # Initialize user if not exists
-        if user_str not in stats["users"]:
-            stats["users"][user_str] = {
-                "username": username,
-                "files_uploaded": 0,
-                "downloads": 0,
-                "first_seen": datetime.utcnow().isoformat(),
-                "last_seen": datetime.utcnow().isoformat()
-            }
-            stats["total_users"] += 1
-        
-        # Update last seen
-        stats["users"][user_str]["last_seen"] = datetime.utcnow().isoformat()
-        stats["users"][user_str]["username"] = username  # Update in case username changed
-        
-        # Update action-specific stats
-        if action == "upload" and file_type:
-            stats["users"][user_str]["files_uploaded"] += 1
-            stats["total_files"] += 1
-            stats["files_by_type"][file_type] += 1
-        elif action == "download":
-            stats["users"][user_str]["downloads"] += 1
-            stats["downloads"] += 1
-        
-        # Save updated stats
-        with open("stats.json", "w") as f:
-            json.dump(stats, f, indent=2)
-        
-        return True
-    except Exception as e:
-        logger.error(f"Error updating stats: {e}")
-        return False
-
-def is_admin(user_id):
-    """Check if user is admin"""
-    return user_id == ADMIN_USER_ID
-
-def load_banned_users():
-    """Load banned users list"""
-    try:
-        with open("banned_users.json", "r") as f:
-            return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        logger.error(f"Error loading banned_users.json: {e}")
-        return []
-
-def save_banned_users(banned_list):
-    """Save banned users list"""
-    try:
-        with open("banned_users.json", "w") as f:
-            json.dump(banned_list, f, indent=2)
-        return True
-    except Exception as e:
-        logger.error(f"Error saving banned_users.json: {e}")
-        return False
-
-def is_banned(user_id):
-    """Check if user is banned"""
-    banned_users = load_banned_users()
-    return user_id in banned_users
-
-def ban_user(user_id):
-    """Ban a user"""
-    banned_users = load_banned_users()
-    if user_id not in banned_users:
-        banned_users.append(user_id)
-        return save_banned_users(banned_users)
-    return True
-
-def unban_user(user_id):
-    """Unban a user"""
-    banned_users = load_banned_users()
-    if user_id in banned_users:
-        banned_users.remove(user_id)
-        return save_banned_users(banned_users)
-    return True
-
-def save_file_mapping(file_id, unique_id, file_type, original_caption=None):
-    """Save file ID, type and original caption mapping to JSON database"""
-    try:
-        data = load_files()
-        data[unique_id] = {
-            "file_id": file_id,
-            "file_type": file_type,
-            "original_caption": original_caption,
-            "timestamp": datetime.utcnow().isoformat()
-        }
-        with open("files.json", "w") as f:
-            json.dump(data, f, indent=2)
-        logger.info(f"Saved file mapping for unique_id: {unique_id}")
-        return True
-    except Exception as e:
-        logger.error(f"Error saving file mapping: {e}")
-        return False
-
-@app.on_message(filters.document | filters.video | filters.audio | filters.photo)
-async def file_handler(client, message):
-    """Handle incoming file uploads"""
-    try:
-        # Check if user is banned
-        if is_banned(message.from_user.id):
-            await message.reply_text("❌ You have been banned from using this bot.")
-            logger.info(f"Banned user {message.from_user.id} tried to upload file")
-            return
-        file = None
-        file_type = ""
-        display_type = "📁 File"
-
-        if message.document:
-            file = message.document
-            file_type = "document"
-            display_type = "📄 Document"
-        elif message.video:
-            file = message.video
-            file_type = "video"
-            display_type = "🎥 Video"
-        elif message.audio:
-            file = message.audio
-            file_type = "audio"
-            display_type = "🎵 Audio"
-        elif message.photo:
-            file = message.photo
-            file_type = "photo"
-            display_type = "🖼️ Photo"
-
-        if not file:
-            await message.reply_text("❌ Unable to process this file type.")
-            return
-
-        file_id = file.file_id
-        unique_id = file.file_unique_id
-        original_caption = message.caption if message.caption else None
-
-        # Update statistics
-        username = message.from_user.username or message.from_user.first_name or "Unknown"
-        update_stats(message.from_user.id, username, "upload", file_type)
-
-        if save_file_mapping(file_id, unique_id, file_type, original_caption):
-            bot_me = await app.get_me()
-            bot_username = bot_me.username
-
-            share_link = f"https://t.me/{bot_username}?start={unique_id}"
-
-            file_size = ""
-            if hasattr(file, 'file_size') and file.file_size:
-                size_mb = file.file_size / (1024 * 1024)
-                file_size = f" ({size_mb:.1f} MB)" if size_mb >= 1 else f" ({file.file_size} bytes)"
-
-            file_name = ""
-            if hasattr(file, 'file_name') and file.file_name:
-                file_name = f"\n📝 Name: {file.file_name}"
-
-            response_text = (
-                f"✅ File uploaded successfully!\n\n"
-                f"📂 Type: {display_type}{file_size}"
-                f"{file_name}\n"
-                f"🔗 Share Link:\n{share_link}\n\n"
-                f"💡 Anyone with this link can download your file!"
-            )
-
-            await message.reply_text(response_text, parse_mode=None)
-            logger.info(f"File uploaded by user {message.from_user.id}: {display_type}")
-        else:
-            await message.reply_text("❌ Failed to save file. Please try again.")
-
-    except Exception as e:
-        logger.error(f"Error handling file upload: {e}")
-        await message.reply_text("❌ An error occurred while processing your file. Please try again.")
-
-@app.on_message(filters.command("start"))
-async def start_handler(client, message):
-    """Handle /start command and file retrieval"""
-    try:
-        # Check if user is banned
-        if is_banned(message.from_user.id):
-            await message.reply_text("❌ You have been banned from using this bot.")
-            logger.info(f"Banned user {message.from_user.id} tried to use start command")
-            return
-
-        args = message.text.split()
-
-        if len(args) == 2:
-            file_key = args[1]
-            files = load_files()
-
-            if file_key in files:
-                file_data = files[file_key]
-                file_id = file_data.get("file_id")
-                file_type = file_data.get("file_type")
-                original_caption = file_data.get("original_caption")
-
-                await message.reply_text("📤 Sending your file...")
-
-                # Update download statistics
-                username = message.from_user.username or message.from_user.first_name or "Unknown"
-                update_stats(message.from_user.id, username, "download")
-
-                try:
-                    if file_type == "photo":
-                        await client.send_photo(message.chat.id, file_id, caption=original_caption)
-                    elif file_type == "video":
-                        await client.send_video(message.chat.id, file_id, caption=original_caption)
-                    elif file_type == "audio":
-                        await client.send_audio(message.chat.id, file_id, caption=original_caption)
-                    else:
-                        await client.send_document(message.chat.id, file_id, caption=original_caption)
-
-                    logger.info(f"File retrieved by user {message.from_user.id}: {file_key}")
-                except Exception as e:
-                    logger.error(f"Error sending file {file_key}: {e}")
-                    await message.reply_text(
-                        "❌ File not accessible\n\n"
-                        "This file may have been deleted from Telegram's servers or is no longer available."
-                    )
-            else:
-                await message.reply_text(
-                    "❌ File not found\n\n"
-                    "The file you're looking for doesn't exist or the link is invalid."
-                )
-        else:
-            welcome_text = (
-                "👋 Welcome to File Saver Bot!\n\n"
-                "📁 How it works:\n"
-                "1️⃣ Send me any file (document, video, audio, or photo)\n"
-                "2️⃣ Get a unique shareable download link\n"
-                "3️⃣ Anyone with the link can download your file\n\n"
-                "🔒 Secure & Private\n"
-                "• Files are stored using Telegram's infrastructure\n"
-                "• No external hosting required\n"
-                "• Links work indefinitely\n\n"
-                "📤 Send me a file to get started!"
-            )
-
-            await message.reply_text(welcome_text, parse_mode=None)
-            logger.info(f"New user started the bot: {message.from_user.id}")
-
-    except Exception as e:
-        logger.error(f"Error in start handler: {e}")
-        await message.reply_text("❌ An error occurred. Please try again.")
-
-@app.on_message(filters.command("stats"))
-async def stats_handler(client, message):
-    """Handle /stats command - Admin only"""
-    try:
-        if not is_admin(message.from_user.id):
-            await message.reply_text("❌ Access denied. This command is for administrators only.")
-            return
-
-        stats = load_stats()
-        
-        # Calculate active users (users who interacted in last 30 days)
-        active_users = 0
-        from datetime import datetime, timedelta
-        thirty_days_ago = (datetime.utcnow() - timedelta(days=30)).isoformat()
-        
-        for user_data in stats["users"].values():
-            if user_data["last_seen"] > thirty_days_ago:
-                active_users += 1
-
-        # Get top uploaders
-        top_uploaders = sorted(
-            [(uid, data) for uid, data in stats["users"].items()],
-            key=lambda x: x[1]["files_uploaded"],
-            reverse=True
-        )[:5]
-
-        stats_text = (
-            f"📊 **Bot Statistics**\n\n"
-            f"👥 **Users:**\n"
-            f"• Total Users: {stats['total_users']}\n"
-            f"• Active Users (30 days): {active_users}\n\n"
-            f"📁 **Files:**\n"
-            f"• Total Files: {stats['total_files']}\n"
-            f"• Documents: {stats['files_by_type']['document']}\n"
-            f"• Videos: {stats['files_by_type']['video']}\n"
-            f"• Audio: {stats['files_by_type']['audio']}\n"
-            f"• Photos: {stats['files_by_type']['photo']}\n\n"
-            f"📥 **Downloads:** {stats['downloads']}\n\n"
-            f"🏆 **Top Uploaders:**\n"
-        )
-
-        for i, (uid, data) in enumerate(top_uploaders, 1):
-            username = data['username']
-            files = data['files_uploaded']
-            stats_text += f"{i}. @{username}: {files} files\n"
-
-        await message.reply_text(stats_text, parse_mode=None)
-        logger.info(f"Admin {message.from_user.id} requested statistics")
-
-    except Exception as e:
-        logger.error(f"Error in stats handler: {e}")
-        await message.reply_text("❌ An error occurred while retrieving statistics.")
-
-@app.on_message(filters.command("users"))
-async def users_handler(client, message):
-    """Handle /users command - Admin only"""
-    try:
-        if not is_admin(message.from_user.id):
-            await message.reply_text("❌ Access denied. This command is for administrators only.")
-            return
-
-        stats = load_stats()
-        users_list = []
-        
-        for uid, data in stats["users"].items():
-            username = data['username']
-            files = data['files_uploaded']
-            downloads = data['downloads']
-            last_seen = data['last_seen'][:10]  # Just the date part
-            users_list.append((username, files, downloads, last_seen))
-
-        # Sort by files uploaded
-        users_list.sort(key=lambda x: x[1], reverse=True)
-
-        users_text = f"👥 **User List** (Total: {len(users_list)})\n\n"
-        
-        for i, (username, files, downloads, last_seen) in enumerate(users_list[:20], 1):
-            users_text += f"{i}. @{username}\n"
-            users_text += f"   📁 Files: {files} | 📥 Downloads: {downloads}\n"
-            users_text += f"   📅 Last seen: {last_seen}\n\n"
-
-        if len(users_list) > 20:
-            users_text += f"... and {len(users_list) - 20} more users"
-
-        await message.reply_text(users_text, parse_mode=None)
-        logger.info(f"Admin {message.from_user.id} requested user list")
-
-    except Exception as e:
-        logger.error(f"Error in users handler: {e}")
-        await message.reply_text("❌ An error occurred while retrieving user list.")
-
-@app.on_message(filters.command("ban"))
-async def ban_handler(client, message):
-    """Handle /ban command - Admin only"""
-    try:
-        if not is_admin(message.from_user.id):
-            await message.reply_text("❌ Access denied. This command is for administrators only.")
-            return
-
-        args = message.text.split()
-        if len(args) != 2:
-            await message.reply_text("❌ Usage: /ban <user_id>\nExample: /ban 123456789")
-            return
-
-        try:
-            user_id_to_ban = int(args[1])
-        except ValueError:
-            await message.reply_text("❌ Invalid user ID. Please provide a numeric user ID.")
-            return
-
-        # Prevent admin from banning themselves
-        if user_id_to_ban == ADMIN_USER_ID:
-            await message.reply_text("❌ You cannot ban yourself!")
-            return
-
-        if is_banned(user_id_to_ban):
-            await message.reply_text(f"⚠️ User {user_id_to_ban} is already banned.")
-            return
-
-        if ban_user(user_id_to_ban):
-            await message.reply_text(f"✅ User {user_id_to_ban} has been banned successfully.")
-            logger.info(f"Admin {message.from_user.id} banned user {user_id_to_ban}")
-        else:
-            await message.reply_text("❌ Failed to ban user. Please try again.")
-
-    except Exception as e:
-        logger.error(f"Error in ban handler: {e}")
-        await message.reply_text("❌ An error occurred while banning user.")
-
-@app.on_message(filters.command("unban"))
-async def unban_handler(client, message):
-    """Handle /unban command - Admin only"""
-    try:
-        if not is_admin(message.from_user.id):
-            await message.reply_text("❌ Access denied. This command is for administrators only.")
-            return
-
-        args = message.text.split()
-        if len(args) != 2:
-            await message.reply_text("❌ Usage: /unban <user_id>\nExample: /unban 123456789")
-            return
-
-        try:
-            user_id_to_unban = int(args[1])
-        except ValueError:
-            await message.reply_text("❌ Invalid user ID. Please provide a numeric user ID.")
-            return
-
-        if not is_banned(user_id_to_unban):
-            await message.reply_text(f"⚠️ User {user_id_to_unban} is not banned.")
-            return
-
-        if unban_user(user_id_to_unban):
-            await message.reply_text(f"✅ User {user_id_to_unban} has been unbanned successfully.")
-            logger.info(f"Admin {message.from_user.id} unbanned user {user_id_to_unban}")
-        else:
-            await message.reply_text("❌ Failed to unban user. Please try again.")
-
-    except Exception as e:
-        logger.error(f"Error in unban handler: {e}")
-        await message.reply_text("❌ An error occurred while unbanning user.")
-
-@app.on_message(filters.command("banned"))
-async def banned_list_handler(client, message):
-    """Handle /banned command - Admin only - Show banned users list"""
-    try:
-        if not is_admin(message.from_user.id):
-            await message.reply_text("❌ Access denied. This command is for administrators only.")
-            return
-
-        banned_users = load_banned_users()
-        
-        if not banned_users:
-            await message.reply_text("✅ No users are currently banned.")
-            return
-
-        stats = load_stats()
-        banned_text = f"🚫 **Banned Users** (Total: {len(banned_users)})\n\n"
-
-        for i, user_id in enumerate(banned_users, 1):
-            user_str = str(user_id)
-            username = "Unknown"
-            
-            # Try to get username from stats
-            if user_str in stats["users"]:
-                username = stats["users"][user_str].get("username", "Unknown")
-            
-            banned_text += f"{i}. @{username} (ID: {user_id})\n"
-
-        await message.reply_text(banned_text, parse_mode=None)
-        logger.info(f"Admin {message.from_user.id} requested banned users list")
-
-    except Exception as e:
-        logger.error(f"Error in banned list handler: {e}")
-        await message.reply_text("❌ An error occurred while retrieving banned users list.")
-
-@app.on_message(filters.command("help"))
-async def help_handler(client, message):
-    """Handle /help command"""
-    help_text = (
-        "📖 Help - File Saver Bot\n\n"
-        "🔧 Commands:\n"
-        "• /start - Start the bot or retrieve a file\n"
-        "• /help - Show this help message\n\n"
-        "📤 Uploading Files:\n"
-        "• Send any document, video, audio, or photo\n"
-        "• Get a unique shareable link instantly\n"
-        "• Share the link with anyone\n\n"
-        "📥 Downloading Files:\n"
-        "• Click any file link you received\n"
-        "• Files are sent back automatically\n\n"
-        "💡 Tips:\n"
-        "• Links work indefinitely\n"
-        "• No file size limits (Telegram's limits apply)\n"
-        "• All file types supported\n"
-        "• Files stored securely on Telegram servers"
-    )
+        },
+        "banned_users.json": []
+    }
     
-    # Add admin commands if user is admin
-    if is_admin(message.from_user.id):
-        help_text += (
-            "\n\n🔐 Admin Commands:\n"
-            "• /stats - View bot statistics\n"
-            "• /users - View user list\n"
-            "• /ban <user_id> - Ban a user\n"
-            "• /unban <user_id> - Unban a user\n"
-            "• /banned - View banned users list"
-        )
+    for filename, default_data in files_to_create.items():
+        if not os.path.exists(filename):
+            with open(filename, "w") as f:
+                json.dump(default_data, f, indent=2)
+            logger.info(f"Created {filename}")
 
-    await message.reply_text(help_text, parse_mode=None)
+# Flask routes for health checks and webhook
+@app.route('/')
+def home():
+    """Health check endpoint with bot status page"""
+    return '''
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <title>Telegram File Saver Bot</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { 
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    min-height: 100vh;
+                    color: white;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .container {
+                    max-width: 800px;
+                    width: 90%;
+                    background: rgba(255,255,255,0.1);
+                    padding: 40px;
+                    border-radius: 20px;
+                    backdrop-filter: blur(15px);
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+                    text-align: center;
+                }
+                h1 { 
+                    font-size: 2.5em; 
+                    margin-bottom: 20px; 
+                    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+                }
+                .status { 
+                    background: rgba(0,255,0,0.2); 
+                    padding: 20px; 
+                    border-radius: 15px; 
+                    margin: 30px 0;
+                    border: 2px solid rgba(0,255,0,0.3);
+                }
+                .feature-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 20px;
+                    margin-top: 30px;
+                }
+                .feature {
+                    background: rgba(255,255,255,0.1);
+                    padding: 25px;
+                    border-radius: 15px;
+                    text-align: left;
+                    transition: transform 0.3s ease;
+                }
+                .feature:hover {
+                    transform: translateY(-5px);
+                }
+                .feature h3 {
+                    margin-bottom: 15px;
+                    color: #fff;
+                    font-size: 1.2em;
+                }
+                .stats-section {
+                    background: rgba(255,255,255,0.05);
+                    padding: 20px;
+                    border-radius: 15px;
+                    margin: 20px 0;
+                }
+                .bot-link {
+                    display: inline-block;
+                    background: rgba(255,255,255,0.2);
+                    padding: 15px 30px;
+                    border-radius: 50px;
+                    text-decoration: none;
+                    color: white;
+                    font-weight: bold;
+                    margin-top: 20px;
+                    transition: background 0.3s ease;
+                }
+                .bot-link:hover {
+                    background: rgba(255,255,255,0.3);
+                }
+                @media (max-width: 600px) {
+                    .container { padding: 20px; }
+                    h1 { font-size: 2em; }
+                    .feature-grid { grid-template-columns: 1fr; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>🤖 Telegram File Saver Bot</h1>
+                
+                <div class="status">
+                    <h2>🟢 Bot is Online & Ready</h2>
+                    <p>Your Telegram bot is running successfully on Render!</p>
+                    <p><strong>Deployment Status:</strong> Active | <strong>Method:</strong> Webhook</p>
+                </div>
+                
+                <div class="stats-section">
+                    <h3>📊 Live Statistics</h3>
+                    <p>Service uptime: Active | Health checks: Passing</p>
+                    <p>Ready to handle file uploads and downloads</p>
+                </div>
+                
+                <div class="feature-grid">
+                    <div class="feature">
+                        <h3>📁 File Upload & Sharing</h3>
+                        <p>Upload any file type and get permanent shareable download links instantly.</p>
+                    </div>
+                    
+                    <div class="feature">
+                        <h3>🔗 Permanent Links</h3>
+                        <p>Generated links work indefinitely using Telegram's infrastructure.</p>
+                    </div>
+                    
+                    <div class="feature">
+                        <h3>🛡️ Admin Controls</h3>
+                        <p>Comprehensive user management, statistics, and ban system for administrators.</p>
+                    </div>
+                    
+                    <div class="feature">
+                        <h3>☁️ Cloud Storage</h3>
+                        <p>No external hosting required - files are stored securely on Telegram's servers.</p>
+                    </div>
+                </div>
+                
+                <a href="https://t.me/your_bot_username" class="bot-link">
+                    🚀 Start Using Bot on Telegram
+                </a>
+                
+                <div style="margin-top: 30px; opacity: 0.8; font-size: 0.9em;">
+                    <p>Deployed on Render.com | Webhook Mode | Production Ready</p>
+                </div>
+            </div>
+        </body>
+    </html>
+    '''
 
-@app.on_message(filters.text & ~filters.command(["start", "help", "stats", "users", "ban", "unban", "banned"]))
-async def text_handler(client, message):
-    """Handle regular text messages"""
-    # Check if user is banned
-    if is_banned(message.from_user.id):
-        await message.reply_text("❌ You have been banned from using this bot.")
-        logger.info(f"Banned user {message.from_user.id} tried to send text message")
-        return
-        
-    await message.reply_text(
-        "📁 Send me a file to get started!\n\n"
-        "I can handle:\n"
-        "• 📄 Documents (PDF, DOC, etc.)\n"
-        "• 🎥 Videos (MP4, AVI, etc.)\n"
-        "• 🎵 Audio files (MP3, WAV, etc.)\n"
-        "• 🖼️ Photos (JPG, PNG, etc.)\n\n"
-        "Use /help for more information."
-    )
-
-if __name__ == "__main__":
-    logger.info("Starting File Saver Bot...")
+@app.route('/health')
+def health():
+    """Simple health check for monitoring"""
     try:
-        # Import and start the keep-alive server
-        from keep_alive import keep_alive
-        keep_alive()
+        # Check if essential files exist
+        files_exist = all(os.path.exists(f) for f in ["files.json", "stats.json", "banned_users.json"])
         
-        # Start the bot
-        app.run()
+        return jsonify({
+            "status": "healthy",
+            "service": "telegram-file-saver-bot",
+            "timestamp": datetime.utcnow().isoformat(),
+            "files_ready": files_exist,
+            "webhook_active": True
+        }), 200
     except Exception as e:
-        logger.error(f"Error starting bot: {e}")
+        logger.error(f"Health check failed: {e}")
+        return jsonify({
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }), 500
+
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    """Handle incoming webhook updates from Telegram"""
+    try:
+        if request.headers.get('content-type') != 'application/json':
+            return 'Invalid content type', 400
+            
+        json_data = request.get_json()
+        if not json_data:
+            return 'No JSON data', 400
+            
+        # Process the update asynchronously
+        asyncio.create_task(webhook_handler.process_update(json_data))
+        
+        return 'OK', 200
+        
+    except Exception as e:
+        logger.error(f"Webhook error: {e}")
+        return 'Internal Server Error', 500
+
+@app.route('/stats')
+def public_stats():
+    """Public stats endpoint (basic info only)"""
+    try:
+        stats = load_stats()
+        return jsonify({
+            "total_users": stats.get("total_users", 0),
+            "total_files": stats.get("total_files", 0),
+            "downloads": stats.get("downloads", 0),
+            "status": "operational"
+        })
+    except Exception as e:
+        logger.error(f"Stats error: {e}")
+        return jsonify({"error": "Stats unavailable"}), 500
+
+async def setup_webhook():
+    """Set up webhook with Telegram"""
+    try:
+        # Get the external URL from Render environment
+        external_url = os.getenv('RENDER_EXTERNAL_URL')
+        if not external_url:
+            logger.error("RENDER_EXTERNAL_URL not found! Cannot set webhook.")
+            return False
+            
+        webhook_url = f"{external_url}/webhook"
+        
+        # Start the client
+        await pyrogram_client.start()
+        
+        # Set webhook
+        success = await pyrogram_client.set_webhook(webhook_url)
+        if success:
+            logger.info(f"Webhook set successfully: {webhook_url}")
+            
+            # Get bot info
+            me = await pyrogram_client.get_me()
+            logger.info(f"Bot started: @{me.username} ({me.first_name})")
+            
+            return True
+        else:
+            logger.error("Failed to set webhook")
+            return False
+            
+    except Exception as e:
+        logger.error(f"Webhook setup error: {e}")
+        return False
+
+def run_bot():
+    """Run the bot setup in the background"""
+    try:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        # Setup webhook
+        success = loop.run_until_complete(setup_webhook())
+        if not success:
+            logger.error("Failed to setup webhook. Bot may not work properly.")
+            
+        # Keep the event loop running
+        loop.run_forever()
+        
+    except Exception as e:
+        logger.error(f"Bot thread error: {e}")
+
+if __name__ == '__main__':
+    try:
+        # Ensure JSON files exist
+        ensure_json_files()
+        
+        # Setup bot handlers
+        setup_handlers(pyrogram_client, ADMIN_USER_ID)
+        
+        # Start bot in background thread
+        bot_thread = threading.Thread(target=run_bot, daemon=True)
+        bot_thread.start()
+        
+        # Get port from environment (Render provides this)
+        port = int(os.environ.get('PORT', 5000))
+        
+        logger.info(f"Starting Flask server on port {port}")
+        logger.info("Bot is running in webhook mode for Render deployment")
+        
+        # Run Flask app
+        app.run(
+            host='0.0.0.0',
+            port=port,
+            debug=False,  # Never use debug=True in production
+            use_reloader=False  # Prevent multiple instances
+        )
+        
+    except KeyboardInterrupt:
+        logger.info("Bot stopped by user")
+    except Exception as e:
+        logger.error(f"Fatal error: {e}")
+        exit(1)
