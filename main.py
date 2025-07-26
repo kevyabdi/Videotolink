@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 # Get credentials from environment variables
 API_ID = int(os.getenv("API_ID", "26176218"))
 API_HASH = os.getenv("API_HASH", "4a50bc8acb0169930f5914eb88091736")
-BOT_TOKEN = os.getenv("BOT_TOKEN", "6872287601:AAFrxXxXU9s4V0CJHxybBQ-cvMYP9fJFxyg")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8305685426:AAGKtkVBJ80NJHQsotq2Q-SJKILEh9HpA8U")
 
 # Admin user ID (replace with your Telegram user ID)
 ADMIN_USER_ID = 1096693642  # Replace with your actual Telegram user ID
