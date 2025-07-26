@@ -557,17 +557,11 @@ async def text_handler(client, message):
         return
         
     
-        "📁 Send me a file to get started!\n\n"
-        "I can handle:\n"
-        "• 📄 Documents (PDF, DOC, etc.)\n"
-        "• 🎥 Videos (MP4, AVI, etc.)\n"
-        "• 🎵 Audio files (MP3, WAV, etc.)\n"
-        "• 🖼️ Photos (JPG, PNG, etc.)\n\n"
-        "Use /help for more information."
+        
     )
 
 if __name__ == "__main__":
-    logger.info("Starting File Saver Bot...")
+    logger.info("Starting File Saver Bot Sug waxyar...")
     try:
         # Import and start the keep-alive server (optional for some deployments)
         try:
