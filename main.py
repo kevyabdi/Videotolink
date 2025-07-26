@@ -554,14 +554,20 @@ async def text_handler(client, message):
     if is_banned(message.from_user.id):
         await message.reply_text("❌ You have been banned from using this bot.")
         logger.info(f"Banned user {message.from_user.id} tried to send text message")
+        return
         
-        
-    
-        
-    
+    await message.reply_text(
+        "📁 Send me a file to get started!\n\n"
+        "I can handle:\n"
+        "• 📄 Documents (PDF, DOC, etc.)\n"
+        "• 🎥 Videos (MP4, AVI, etc.)\n"
+        "• 🎵 Audio files (MP3, WAV, etc.)\n"
+        "• 🖼️ Photos (JPG, PNG, etc.)\n\n"
+        "Use /help for more information."
+    )
 
 if __name__ == "__main__":
-    logger.info("Starting File Saver Bot Sug waxyar...")
+    logger.info("Starting File Saver Bot...")
     try:
         # Import and start the keep-alive server (optional for some deployments)
         try:
