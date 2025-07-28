@@ -1,5 +1,6 @@
 from pyrogram import filters
 from pyrogram.client import Client
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import json
 import os
 import uuid
@@ -20,6 +21,12 @@ BOT_TOKEN = os.getenv("BOT_TOKEN", "8452579938:AAGeNe_GEes9iiCDRz99bk94ubkbTbbzm
 # Admin user ID (replace with your Telegram user ID)
 ADMIN_USER_ID = 1096693642  # Replace with your actual Telegram user ID
 
+# Premium admin user IDs (users who can become admins)
+PREMIUM_ADMIN_IDS = set()  # Will be populated from premium users
+
+# Free user upload limit
+FREE_USER_UPLOAD_LIMIT = 10
+
 # Initialize the Pyrogram client
 app = Client("filetobot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
@@ -37,6 +44,7 @@ if not os.path.exists("stats.json"):
             "total_files": 0,
             "files_by_type": {"document": 0, "video": 0, "audio": 0, "photo": 0},
             "downloads": 0,
+            "premium_users": 0,
             "users": {}
         }, f, indent=2)
     logger.info("Created new stats.json database")
@@ -60,7 +68,17 @@ def load_stats():
     """Load statistics from JSON database"""
     try:
         with open("stats.json", "r") as f:
-            return json.load(f)
+            stats = json.load(f)
+            # Ensure backward compatibility with new premium fields
+            if "premium_users" not in stats:
+                stats["premium_users"] = 0
+            # Update existing users with premium status if not present
+            for user_id, user_data in stats["users"].items():
+                if "is_premium" not in user_data:
+                    user_data["is_premium"] = False
+                if "upload_count" not in user_data:
+                    user_data["upload_count"] = user_data.get("files_uploaded", 0)
+            return stats
     except (FileNotFoundError, json.JSONDecodeError) as e:
         logger.error(f"Error loading stats.json: {e}")
         return {
@@ -68,6 +86,7 @@ def load_stats():
             "total_files": 0,
             "files_by_type": {"document": 0, "video": 0, "audio": 0, "photo": 0},
             "downloads": 0,
+            "premium_users": 0,
             "users": {}
         }
 
@@ -82,7 +101,9 @@ def update_stats(user_id, username, action, file_type=None):
             stats["users"][user_str] = {
                 "username": username,
                 "files_uploaded": 0,
+                "upload_count": 0,
                 "downloads": 0,
+                "is_premium": False,
                 "first_seen": datetime.utcnow().isoformat(),
                 "last_seen": datetime.utcnow().isoformat()
             }
@@ -95,6 +116,7 @@ def update_stats(user_id, username, action, file_type=None):
         # Update action-specific stats
         if action == "upload" and file_type:
             stats["users"][user_str]["files_uploaded"] += 1
+            stats["users"][user_str]["upload_count"] += 1
             stats["total_files"] += 1
             stats["files_by_type"][file_type] += 1
         elif action == "download":
@@ -110,8 +132,83 @@ def update_stats(user_id, username, action, file_type=None):
         return False
 
 def is_admin(user_id):
-    """Check if user is admin"""
+    """Check if user is admin (main admin or premium admin)"""
+    return user_id == ADMIN_USER_ID or user_id in PREMIUM_ADMIN_IDS
+
+def is_main_admin(user_id):
+    """Check if user is the main admin"""
     return user_id == ADMIN_USER_ID
+
+def is_premium_user(user_id):
+    """Check if user is premium"""
+    try:
+        stats = load_stats()
+        user_str = str(user_id)
+        return stats["users"].get(user_str, {}).get("is_premium", False)
+    except Exception as e:
+        logger.error(f"Error checking premium status: {e}")
+        return False
+
+def set_premium_status(user_id, username, is_premium):
+    """Set premium status for a user"""
+    try:
+        stats = load_stats()
+        user_str = str(user_id)
+        
+        # Initialize user if not exists
+        if user_str not in stats["users"]:
+            stats["users"][user_str] = {
+                "username": username,
+                "files_uploaded": 0,
+                "upload_count": 0,
+                "downloads": 0,
+                "is_premium": False,
+                "first_seen": datetime.utcnow().isoformat(),
+                "last_seen": datetime.utcnow().isoformat()
+            }
+            stats["total_users"] += 1
+        
+        # Update premium status
+        old_status = stats["users"][user_str].get("is_premium", False)
+        stats["users"][user_str]["is_premium"] = is_premium
+        stats["users"][user_str]["username"] = username
+        stats["users"][user_str]["last_seen"] = datetime.utcnow().isoformat()
+        
+        # Update premium user count
+        if is_premium and not old_status:
+            stats["premium_users"] += 1
+            # Add to premium admin IDs if premium
+            PREMIUM_ADMIN_IDS.add(user_id)
+        elif not is_premium and old_status:
+            stats["premium_users"] -= 1
+            # Remove from premium admin IDs if downgraded
+            PREMIUM_ADMIN_IDS.discard(user_id)
+        
+        # Save updated stats
+        with open("stats.json", "w") as f:
+            json.dump(stats, f, indent=2)
+        return True
+    except Exception as e:
+        logger.error(f"Error setting premium status: {e}")
+        return False
+
+def get_user_upload_count(user_id):
+    """Get user's current upload count"""
+    try:
+        stats = load_stats()
+        user_str = str(user_id)
+        return stats["users"].get(user_str, {}).get("upload_count", 0)
+    except Exception as e:
+        logger.error(f"Error getting upload count: {e}")
+        return 0
+
+def can_upload(user_id):
+    """Check if user can upload more files"""
+    if is_premium_user(user_id):
+        return True  # Premium users have unlimited uploads
+    
+    current_uploads = get_user_upload_count(user_id)
+    return current_uploads < FREE_USER_UPLOAD_LIMIT
 
 def load_banned_users():
     """Load banned users list"""
@@ -171,6 +268,17 @@ def save_file_mapping(file_id, unique_id, file_type, original_caption=None):
         logger.error(f"Error saving file mapping: {e}")
         return False
 
+def load_premium_admins():
+    """Load premium users who can be admins into the PREMIUM_ADMIN_IDS set"""
+    try:
+        stats = load_stats()
+        for user_id, user_data in stats["users"].items():
+            if user_data.get("is_premium", False):
+                PREMIUM_ADMIN_IDS.add(int(user_id))
+        logger.info(f"Loaded {len(PREMIUM_ADMIN_IDS)} premium admin users")
+    except Exception as e:
+        logger.error(f"Error loading premium admins: {e}")
+
 @app.on_message(filters.document | filters.video | filters.audio | filters.photo)
 async def file_handler(client, message):
     """Handle incoming file uploads"""
@@ -179,6 +287,19 @@ async def file_handler(client, message):
         if is_banned(message.from_user.id):
             await message.reply_text("❌ You have been banned from using this bot.")
             logger.info(f"Banned user {message.from_user.id} tried to upload file")
+            return
+
+        # Check upload limit for free users
+        if not can_upload(message.from_user.id):
+            current_uploads = get_user_upload_count(message.from_user.id)
+            await message.reply_text(
+                f"❌ **Upload Limit Reached**\n\n"
+                f"You have reached the free user limit of {FREE_USER_UPLOAD_LIMIT} uploads.\n"
+                f"Current uploads: {current_uploads}/{FREE_USER_UPLOAD_LIMIT}\n\n"
+                f"💎 Upgrade to premium for unlimited uploads!\n"
+                f"Contact an admin for premium access."
+            )
+            logger.info(f"User {message.from_user.id} reached upload limit ({current_uploads}/{FREE_USER_UPLOAD_LIMIT})")
             return
 
         file = None
@@ -228,10 +349,19 @@ async def file_handler(client, message):
             if hasattr(file, 'file_name') and file.file_name:
                 file_name = f"\n📝 Name: {file.file_name}"
             
+            # Show premium status and remaining uploads for free users
+            premium_status = "💎 Premium" if is_premium_user(message.from_user.id) else "🆓 Free"
+            upload_info = ""
+            if not is_premium_user(message.from_user.id):
+                current_uploads = get_user_upload_count(message.from_user.id)
+                remaining = FREE_USER_UPLOAD_LIMIT - current_uploads
+                upload_info = f"\n📊 Uploads: {current_uploads}/{FREE_USER_UPLOAD_LIMIT} (Remaining: {remaining})"
+            
             response_text = (
                 f"✅ File uploaded successfully!\n\n"
                 f"📂 Type: {display_type}{file_size}"
                 f"{file_name}\n"
+                f"👤 Status: {premium_status}{upload_info}\n"
                 f"🔗 Share Link:\n{share_link}\n\n"
                 f"💡 Anyone with this link can download your file!"
             )
@@ -272,14 +402,21 @@ async def start_handler(client, message):
                 update_stats(message.from_user.id, username, "download")
                 
                 try:
+                    # Create keyboard with JOIN DAAWO button for videos
+                    keyboard = None
+                    if file_type == "video":
+                        keyboard = InlineKeyboardMarkup([
+                            [InlineKeyboardButton("📺 JOIN DAAWO", url="https://t.me/daawotv")]
+                        ])
+                    
                     if file_type == "photo":
-                        await client.send_photo(message.chat.id, file_id, caption=original_caption)
+                        await client.send_photo(message.chat.id, file_id, caption=original_caption, reply_markup=keyboard)
                     elif file_type == "video":
-                        await client.send_video(message.chat.id, file_id, caption=original_caption)
+                        await client.send_video(message.chat.id, file_id, caption=original_caption, reply_markup=keyboard)
                     elif file_type == "audio":
-                        await client.send_audio(message.chat.id, file_id, caption=original_caption)
+                        await client.send_audio(message.chat.id, file_id, caption=original_caption, reply_markup=keyboard)
                     else:
-                        await client.send_document(message.chat.id, file_id, caption=original_caption)
+                        await client.send_document(message.chat.id, file_id, caption=original_caption, reply_markup=keyboard)
                     
                     logger.info(f"File retrieved by user {message.from_user.id}: {file_key}")
                 except Exception as e:
@@ -294,17 +431,30 @@ async def start_handler(client, message):
                     "The file you're looking for doesn't exist or the link is invalid."
                 )
         else:
+            # Check user status for welcome message
+            premium_status = "💎 Premium User" if is_premium_user(message.from_user.id) else "🆓 Free User"
+            upload_info = ""
+            if not is_premium_user(message.from_user.id):
+                current_uploads = get_user_upload_count(message.from_user.id)
+                remaining = FREE_USER_UPLOAD_LIMIT - current_uploads
+                upload_info = f"\n📊 Your uploads: {current_uploads}/{FREE_USER_UPLOAD_LIMIT} (Remaining: {remaining})"
+            
             welcome_text = (
-                "👋 Welcome to File Saver Bot! @DAAWOTV \n\n"
-                "📁 How it works:\n"
-                "1️⃣ Send me any file (document, video, audio, or photo)\n"
-                "2️⃣ Get a unique shareable download link\n"
-                "3️⃣ Anyone with the link can download your file\n\n"
-                "🔒 Secure & Private\n"
-                "• Files are stored using Telegram's infrastructure\n"
-                "• No external hosting required\n"
-                "• Links work indefinitely\n\n"
-                "📤 Send me a file to get started !"
+                f"👋 Welcome to File Saver Bot! @DAAWOTV\n\n"
+                f"👤 Status: {premium_status}{upload_info}\n\n"
+                f"📁 How it works:\n"
+                f"1️⃣ Send me any file (document, video, audio, or photo)\n"
+                f"2️⃣ Get a unique shareable download link\n"
+                f"3️⃣ Anyone with the link can download your file\n\n"
+                f"🔒 Secure & Private\n"
+                f"• Files are stored using Telegram's infrastructure\n"
+                f"• No external hosting required\n"
+                f"• Links work indefinitely\n\n"
+                f"💎 Premium Features:\n"
+                f"• Unlimited file uploads\n"
+                f"• Admin privileges (premium only)\n"
+                f"• Priority support\n\n"
+                f"📤 Send me a file to get started!"
             )
             await message.reply_text(welcome_text, parse_mode=None)
             logger.info(f"New user started the bot: {message.from_user.id}")
@@ -312,6 +462,147 @@ async def start_handler(client, message):
     except Exception as e:
         logger.error(f"Error in start handler: {e}")
         await message.reply_text("❌ An error occurred. Please try again.")
+
+@app.on_message(filters.command("premium"))
+async def premium_handler(client, message):
+    """Handle /premium command - Main admin only"""
+    try:
+        if not is_main_admin(message.from_user.id):
+            await message.reply_text("❌ Access denied. This command is for the main administrator only.")
+            return
+
+        args = message.text.split()
+        if len(args) != 2:
+            await message.reply_text(
+                "❌ **Invalid usage**\n\n"
+                "**Usage:** `/premium <user_id>`\n"
+                "**Example:** `/premium 123456789`\n\n"
+                "This will upgrade the specified user to premium status."
+            )
+            return
+
+        try:
+            target_user_id = int(args[1])
+        except ValueError:
+            await message.reply_text("❌ Invalid user ID. Please provide a valid numeric user ID.")
+            return
+
+        # Get user info
+        stats = load_stats()
+        user_str = str(target_user_id)
+        
+        if user_str not in stats["users"]:
+            await message.reply_text(f"❌ User {target_user_id} not found in database. They need to interact with the bot first.")
+            return
+
+        user_data = stats["users"][user_str]
+        username = user_data.get("username", "Unknown")
+        
+        if user_data.get("is_premium", False):
+            await message.reply_text(f"ℹ️ User @{username} ({target_user_id}) is already premium.")
+            return
+
+        # Set premium status
+        if set_premium_status(target_user_id, username, True):
+            await message.reply_text(
+                f"✅ **Premium Upgrade Successful**\n\n"
+                f"👤 User: @{username} ({target_user_id})\n"
+                f"💎 Status: Upgraded to Premium\n"
+                f"🔧 Admin Access: Granted\n\n"
+                f"The user now has unlimited uploads and admin privileges."
+            )
+            logger.info(f"User {target_user_id} upgraded to premium by admin {message.from_user.id}")
+            
+            # Notify the user if possible
+            try:
+                await client.send_message(
+                    target_user_id,
+                    f"🎉 **Congratulations!**\n\n"
+                    f"You have been upgraded to **Premium User**!\n\n"
+                    f"💎 Premium Benefits:\n"
+                    f"• Unlimited file uploads\n"
+                    f"• Admin privileges\n"
+                    f"• Priority support\n\n"
+                    f"Thank you for using our bot! @DAAWOTV"
+                )
+            except Exception as e:
+                logger.warning(f"Could not notify user {target_user_id} about premium upgrade: {e}")
+        else:
+            await message.reply_text("❌ Failed to upgrade user to premium. Please try again.")
+
+    except Exception as e:
+        logger.error(f"Error in premium handler: {e}")
+        await message.reply_text("❌ An error occurred while processing the premium upgrade.")
+
+@app.on_message(filters.command("unpremium"))
+async def unpremium_handler(client, message):
+    """Handle /unpremium command - Main admin only"""
+    try:
+        if not is_main_admin(message.from_user.id):
+            await message.reply_text("❌ Access denied. This command is for the main administrator only.")
+            return
+
+        args = message.text.split()
+        if len(args) != 2:
+            await message.reply_text(
+                "❌ **Invalid usage**\n\n"
+                "**Usage:** `/unpremium <user_id>`\n"
+                "**Example:** `/unpremium 123456789`\n\n"
+                "This will downgrade the specified user from premium status."
+            )
+            return
+
+        try:
+            target_user_id = int(args[1])
+        except ValueError:
+            await message.reply_text("❌ Invalid user ID. Please provide a valid numeric user ID.")
+            return
+
+        # Get user info
+        stats = load_stats()
+        user_str = str(target_user_id)
+        
+        if user_str not in stats["users"]:
+            await message.reply_text(f"❌ User {target_user_id} not found in database.")
+            return
+
+        user_data = stats["users"][user_str]
+        username = user_data.get("username", "Unknown")
+        
+        if not user_data.get("is_premium", False):
+            await message.reply_text(f"ℹ️ User @{username} ({target_user_id}) is already a free user.")
+            return
+
+        # Remove premium status
+        if set_premium_status(target_user_id, username, False):
+            await message.reply_text(
+                f"✅ **Premium Downgrade Successful**\n\n"
+                f"👤 User: @{username} ({target_user_id})\n"
+                f"🆓 Status: Downgraded to Free User\n"
+                f"🔧 Admin Access: Removed\n\n"
+                f"The user now has limited uploads ({FREE_USER_UPLOAD_LIMIT} files) and no admin privileges."
+            )
+            logger.info(f"User {target_user_id} downgraded from premium by admin {message.from_user.id}")
+            
+            # Notify the user if possible
+            try:
+                await client.send_message(
+                    target_user_id,
+                    f"📢 **Account Status Update**\n\n"
+                    f"Your account has been changed to **Free User**.\n\n"
+                    f"🆓 Free User Limits:\n"
+                    f"• {FREE_USER_UPLOAD_LIMIT} file uploads maximum\n"
+                    f"• No admin privileges\n\n"
+                    f"Contact an admin if you believe this was done in error."
+                )
+            except Exception as e:
+                logger.warning(f"Could not notify user {target_user_id} about premium downgrade: {e}")
+        else:
+            await message.reply_text("❌ Failed to downgrade user from premium. Please try again.")
+
+    except Exception as e:
+        logger.error(f"Error in unpremium handler: {e}")
+        await message.reply_text("❌ An error occurred while processing the premium downgrade.")
 
 @app.on_message(filters.command("stats"))
 async def stats_handler(client, message):
@@ -332,6 +623,10 @@ async def stats_handler(client, message):
             if user_data["last_seen"] > thirty_days_ago:
                 active_users += 1
         
+        # Get premium and free user counts
+        premium_count = stats.get("premium_users", 0)
+        free_count = stats["total_users"] - premium_count
+        
         # Get top uploaders
         top_uploaders = sorted(
             [(uid, data) for uid, data in stats["users"].items()],
@@ -339,32 +634,36 @@ async def stats_handler(client, message):
             reverse=True
         )[:5]
         
+        top_uploaders_text = ""
+        for i, (uid, data) in enumerate(top_uploaders, 1):
+            status_icon = "💎" if data.get("is_premium", False) else "🆓"
+            top_uploaders_text += f"{i}. {status_icon} @{data['username']} - {data['files_uploaded']} files\n"
+        
         stats_text = (
             f"📊 **Bot Statistics**\n\n"
             f"👥 **Users:**\n"
-            f"• Total Users: {stats['total_users']}\n"
-            f"• Active Users (30 days): {active_users}\n\n"
+            f"• Total: {stats['total_users']}\n"
+            f"• Active (30 days): {active_users}\n"
+            f"• 💎 Premium: {premium_count}\n"
+            f"• 🆓 Free: {free_count}\n\n"
             f"📁 **Files:**\n"
-            f"• Total Files: {stats['total_files']}\n"
-            f"• Documents: {stats['files_by_type']['document']}\n"
-            f"• Videos: {stats['files_by_type']['video']}\n"
-            f"• Audio: {stats['files_by_type']['audio']}\n"
-            f"• Photos: {stats['files_by_type']['photo']}\n\n"
-            f"📥 **Downloads:** {stats['downloads']}\n\n"
-            f"🏆 **Top Uploaders:**\n"
+            f"• Total uploaded: {stats['total_files']}\n"
+            f"• Total downloads: {stats['downloads']}\n\n"
+            f"📂 **By Type:**\n"
+            f"• 📄 Documents: {stats['files_by_type']['document']}\n"
+            f"• 🎥 Videos: {stats['files_by_type']['video']}\n"
+            f"• 🎵 Audio: {stats['files_by_type']['audio']}\n"
+            f"• 🖼️ Photos: {stats['files_by_type']['photo']}\n\n"
+            f"🏆 **Top Uploaders:**\n{top_uploaders_text}\n"
+            f"📅 **Generated:** {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC"
         )
         
-        for i, (uid, data) in enumerate(top_uploaders, 1):
-            username = data['username']
-            files = data['files_uploaded']
-            stats_text += f"{i}. @{username}: {files} files\n"
-        
-        await message.reply_text(stats_text, parse_mode=None)
-        logger.info(f"Admin {message.from_user.id} requested statistics")
+        await message.reply_text(stats_text)
+        logger.info(f"Statistics requested by admin {message.from_user.id}")
 
     except Exception as e:
         logger.error(f"Error in stats handler: {e}")
-        await message.reply_text("❌ An error occurred while retrieving statistics.")
+        await message.reply_text("❌ An error occurred while generating statistics.")
 
 @app.on_message(filters.command("users"))
 async def users_handler(client, message):
@@ -374,35 +673,65 @@ async def users_handler(client, message):
             await message.reply_text("❌ Access denied. This command is for administrators only.")
             return
 
+        args = message.text.split()
+        page = 1
+        if len(args) == 2:
+            try:
+                page = int(args[1])
+            except ValueError:
+                page = 1
+
         stats = load_stats()
-        users_list = []
+        users = list(stats["users"].items())
         
-        for uid, data in stats["users"].items():
-            username = data['username']
-            files = data['files_uploaded']
-            downloads = data['downloads']
-            last_seen = data['last_seen'][:10]  # Just the date part
-            users_list.append((username, files, downloads, last_seen))
+        if not users:
+            await message.reply_text("📭 No users found in the database.")
+            return
+
+        # Sort by last seen (most recent first)
+        users.sort(key=lambda x: x[1]["last_seen"], reverse=True)
         
-        # Sort by files uploaded
-        users_list.sort(key=lambda x: x[1], reverse=True)
+        # Pagination
+        per_page = 10
+        total_pages = (len(users) + per_page - 1) // per_page
+        page = max(1, min(page, total_pages))
         
-        users_text = f"👥 **User List** (Total: {len(users_list)})\n\n"
+        start_idx = (page - 1) * per_page
+        end_idx = start_idx + per_page
+        page_users = users[start_idx:end_idx]
         
-        for i, (username, files, downloads, last_seen) in enumerate(users_list[:20], 1):
-            users_text += f"{i}. @{username}\n"
-            users_text += f" 📁 Files: {files} | 📥 Downloads: {downloads}\n"
-            users_text += f" 📅 Last seen: {last_seen}\n\n"
+        users_text = f"👥 **User List (Page {page}/{total_pages})**\n\n"
         
-        if len(users_list) > 20:
-            users_text += f"... and {len(users_list) - 20} more users"
+        for i, (user_id, user_data) in enumerate(page_users, start_idx + 1):
+            username = user_data.get("username", "Unknown")
+            files_uploaded = user_data.get("files_uploaded", 0)
+            downloads = user_data.get("downloads", 0)
+            is_premium = user_data.get("is_premium", False)
+            status_icon = "💎" if is_premium else "🆓"
+            
+            # Format last seen
+            try:
+                last_seen = datetime.fromisoformat(user_data["last_seen"])
+                last_seen_str = last_seen.strftime("%Y-%m-%d")
+            except:
+                last_seen_str = "Unknown"
+            
+            users_text += (
+                f"{i}. {status_icon} @{username}\n"
+                f"   ID: `{user_id}`\n"
+                f"   📤 Uploads: {files_uploaded} | 📥 Downloads: {downloads}\n"
+                f"   👀 Last seen: {last_seen_str}\n\n"
+            )
         
-        await message.reply_text(users_text, parse_mode=None)
-        logger.info(f"Admin {message.from_user.id} requested user list")
+        if total_pages > 1:
+            users_text += f"📄 Use `/users <page>` to view other pages (1-{total_pages})"
+        
+        await message.reply_text(users_text)
+        logger.info(f"User list requested by admin {message.from_user.id}, page {page}")
 
     except Exception as e:
         logger.error(f"Error in users handler: {e}")
-        await message.reply_text("❌ An error occurred while retrieving user list.")
+        await message.reply_text("❌ An error occurred while fetching user list.")
 
 @app.on_message(filters.command("ban"))
 async def ban_handler(client, message):
@@ -414,22 +743,39 @@ async def ban_handler(client, message):
 
         args = message.text.split()
         if len(args) != 2:
-            await message.reply_text("❌ Usage: /ban <user_id>\nExample: /ban 123456789")
+            await message.reply_text(
+                "❌ **Invalid usage**\n\n"
+                "**Usage:** `/ban <user_id>`\n"
+                "**Example:** `/ban 123456789`"
+            )
             return
 
         try:
-            user_id = int(args[1])
+            target_user_id = int(args[1])
         except ValueError:
-            await message.reply_text("❌ Invalid user ID. Please provide a numeric user ID.")
+            await message.reply_text("❌ Invalid user ID. Please provide a valid numeric user ID.")
             return
 
-        if user_id == ADMIN_USER_ID:
-            await message.reply_text("❌ Cannot ban the admin user.")
+        # Prevent banning main admin
+        if target_user_id == ADMIN_USER_ID:
+            await message.reply_text("❌ Cannot ban the main administrator.")
             return
 
-        if ban_user(user_id):
-            await message.reply_text(f"✅ User {user_id} has been banned successfully.")
-            logger.info(f"Admin {message.from_user.id} banned user {user_id}")
+        # Get user info
+        stats = load_stats()
+        user_str = str(target_user_id)
+        username = "Unknown"
+        if user_str in stats["users"]:
+            username = stats["users"][user_str].get("username", "Unknown")
+
+        if ban_user(target_user_id):
+            await message.reply_text(
+                f"✅ **User Banned Successfully**\n\n"
+                f"👤 User: @{username} ({target_user_id})\n"
+                f"🚫 Status: Banned from using the bot\n\n"
+                f"The user can no longer upload or download files."
+            )
+            logger.info(f"User {target_user_id} banned by admin {message.from_user.id}")
         else:
             await message.reply_text("❌ Failed to ban user. Please try again.")
 
@@ -447,18 +793,34 @@ async def unban_handler(client, message):
 
         args = message.text.split()
         if len(args) != 2:
-            await message.reply_text("❌ Usage: /unban <user_id>\nExample: /unban 123456789")
+            await message.reply_text(
+                "❌ **Invalid usage**\n\n"
+                "**Usage:** `/unban <user_id>`\n"
+                "**Example:** `/unban 123456789`"
+            )
             return
 
         try:
-            user_id = int(args[1])
+            target_user_id = int(args[1])
         except ValueError:
-            await message.reply_text("❌ Invalid user ID. Please provide a numeric user ID.")
+            await message.reply_text("❌ Invalid user ID. Please provide a valid numeric user ID.")
             return
 
-        if unban_user(user_id):
-            await message.reply_text(f"✅ User {user_id} has been unbanned successfully.")
-            logger.info(f"Admin {message.from_user.id} unbanned user {user_id}")
+        # Get user info
+        stats = load_stats()
+        user_str = str(target_user_id)
+        username = "Unknown"
+        if user_str in stats["users"]:
+            username = stats["users"][user_str].get("username", "Unknown")
+
+        if unban_user(target_user_id):
+            await message.reply_text(
+                f"✅ **User Unbanned Successfully**\n\n"
+                f"👤 User: @{username} ({target_user_id})\n"
+                f"✅ Status: Can now use the bot again\n\n"
+                f"The user can now upload and download files."
+            )
+            logger.info(f"User {target_user_id} unbanned by admin {message.from_user.id}")
         else:
             await message.reply_text("❌ Failed to unban user. Please try again.")
 
@@ -477,20 +839,30 @@ async def banned_handler(client, message):
         banned_users = load_banned_users()
         
         if not banned_users:
-            await message.reply_text("✅ No users are currently banned.")
+            await message.reply_text("📭 No banned users found.")
             return
 
-        banned_text = f"🚫 **Banned Users** (Total: {len(banned_users)})\n\n"
+        # Get user info from stats
+        stats = load_stats()
+        
+        banned_text = f"🚫 **Banned Users ({len(banned_users)})**\n\n"
         
         for i, user_id in enumerate(banned_users, 1):
-            banned_text += f"{i}. User ID: {user_id}\n"
+            user_str = str(user_id)
+            username = "Unknown"
+            if user_str in stats["users"]:
+                username = stats["users"][user_str].get("username", "Unknown")
+            
+            banned_text += f"{i}. @{username} (`{user_id}`)\n"
         
-        await message.reply_text(banned_text, parse_mode=None)
-        logger.info(f"Admin {message.from_user.id} requested banned users list")
+        banned_text += f"\n💡 Use `/unban <user_id>` to unban a user"
+        
+        await message.reply_text(banned_text)
+        logger.info(f"Banned users list requested by admin {message.from_user.id}")
 
     except Exception as e:
         logger.error(f"Error in banned handler: {e}")
-        await message.reply_text("❌ An error occurred while retrieving banned users list.")
+        await message.reply_text("❌ An error occurred while fetching banned users list.")
 
 @app.on_message(filters.command("broadcast"))
 async def broadcast_handler(client, message):
@@ -500,127 +872,103 @@ async def broadcast_handler(client, message):
             await message.reply_text("❌ Access denied. This command is for administrators only.")
             return
 
-        # Check if message is provided
-        text_parts = message.text.split(' ', 1)
-        if len(text_parts) < 2:
+        # Get the broadcast message
+        args = message.text.split(maxsplit=1)
+        if len(args) < 2:
             await message.reply_text(
-                "❌ Usage: /broadcast <message>\n\n"
-                "Example: /broadcast Hello everyone! This is a test broadcast message."
+                "❌ **Invalid usage**\n\n"
+                "**Usage:** `/broadcast <message>`\n"
+                "**Example:** `/broadcast Hello everyone! This is a test message.`"
             )
             return
 
-        broadcast_message = text_parts[1]
+        broadcast_message = args[1]
         
-        # Load user statistics to get all users
+        # Get all users
         stats = load_stats()
         all_users = list(stats["users"].keys())
+        banned_users = load_banned_users()
         
-        if not all_users:
-            await message.reply_text("❌ No users found in the database.")
+        # Filter out banned users
+        target_users = [int(uid) for uid in all_users if int(uid) not in banned_users]
+        
+        if not target_users:
+            await message.reply_text("📭 No users available for broadcast.")
             return
 
-        # Send initial status message
-        status_msg = await message.reply_text(
-            f"📢 **Broadcast Started**\n\n"
-            f"📊 Total users to send: {len(all_users)}\n"
-            f"⏳ Starting broadcast..."
+        # Start broadcast
+        await message.reply_text(
+            f"📢 **Starting Broadcast**\n\n"
+            f"👥 Target users: {len(target_users)}\n"
+            f"⏳ Estimated time: {len(target_users) // 30 + 1} seconds\n\n"
+            f"Broadcasting message..."
         )
 
-        # Initialize counters
         success_count = 0
         failed_count = 0
         blocked_count = 0
         
-        # Rate limiting: 30 messages per second (Telegram's limit)
-        rate_limit_delay = 1.0 / 30  # ~0.033 seconds between messages
-        
-        logger.info(f"Starting broadcast to {len(all_users)} users by admin {message.from_user.id}")
-        
-        # Send messages to all users
-        for i, user_id_str in enumerate(all_users, 1):
+        # Send messages with rate limiting
+        for i, user_id in enumerate(target_users):
             try:
-                user_id = int(user_id_str)
-                
-                # Skip banned users
-                if is_banned(user_id):
-                    failed_count += 1
-                    continue
-                
-                # Skip admin to avoid self-message
-                if user_id == ADMIN_USER_ID:
-                    continue
-                
-                # Send message to user
-                await client.send_message(
-                    chat_id=user_id,
-                    text=f"📢 **Broadcast Message**\n\n{broadcast_message}"
-                )
+                await client.send_message(user_id, f"📢 **Broadcast Message**\n\n{broadcast_message}")
                 success_count += 1
                 
-                # Update status every 50 messages
-                if i % 50 == 0:
-                    try:
-                        await status_msg.edit_text(
-                            f"📢 **Broadcast in Progress**\n\n"
-                            f"📊 Progress: {i}/{len(all_users)} users\n"
-                            f"✅ Sent: {success_count}\n"
-                            f"❌ Failed: {failed_count}\n"
-                            f"🚫 Blocked: {blocked_count}\n"
-                            f"⏳ Continuing..."
-                        )
-                    except:
-                        pass  # Ignore edit errors
-                
-                # Rate limiting
-                await asyncio.sleep(rate_limit_delay)
-                
+                # Rate limiting: 30 messages per second
+                if (i + 1) % 30 == 0:
+                    await asyncio.sleep(1)
+                    
+                # Progress update every 50 messages
+                if (i + 1) % 50 == 0:
+                    progress = (i + 1) / len(target_users) * 100
+                    await message.reply_text(
+                        f"📈 **Broadcast Progress**\n\n"
+                        f"✅ Sent: {success_count}\n"
+                        f"❌ Failed: {failed_count}\n"
+                        f"🚫 Blocked: {blocked_count}\n"
+                        f"📊 Progress: {progress:.1f}%"
+                    )
+                    
             except Exception as e:
-                error_message = str(e).lower()
-                if "blocked" in error_message or "user_is_blocked" in error_message:
+                if "blocked" in str(e).lower() or "user not found" in str(e).lower():
                     blocked_count += 1
-                elif "chat not found" in error_message or "user_id_invalid" in error_message:
-                    failed_count += 1
                 else:
                     failed_count += 1
-                    logger.warning(f"Failed to send broadcast to user {user_id_str}: {e}")
+                logger.warning(f"Failed to send broadcast to user {user_id}: {e}")
+
+        # Final report
+        total_attempted = len(target_users)
+        success_rate = (success_count / total_attempted * 100) if total_attempted > 0 else 0
         
-        # Send final status
-        final_text = (
-            f"📢 **Broadcast Completed**\n\n"
-            f"📊 **Statistics:**\n"
-            f"👥 Total users: {len(all_users)}\n"
+        final_report = (
+            f"📊 **Broadcast Completed**\n\n"
+            f"📈 **Results:**\n"
             f"✅ Successfully sent: {success_count}\n"
-            f"🚫 Blocked users: {blocked_count}\n"
-            f"❌ Failed to send: {failed_count}\n\n"
-            f"📝 **Message sent:**\n{broadcast_message[:100]}{'...' if len(broadcast_message) > 100 else ''}"
+            f"❌ Failed to send: {failed_count}\n"
+            f"🚫 User blocked bot: {blocked_count}\n"
+            f"📊 Success rate: {success_rate:.1f}%\n\n"
+            f"👥 Total users targeted: {total_attempted}\n"
+            f"⏰ Completed at: {datetime.utcnow().strftime('%H:%M:%S')} UTC"
         )
         
-        await status_msg.edit_text(final_text)
-        
-        # Log broadcast completion
-        logger.info(
-            f"Broadcast completed by admin {message.from_user.id}. "
-            f"Success: {success_count}, Failed: {failed_count}, Blocked: {blocked_count}"
-        )
+        await message.reply_text(final_report)
+        logger.info(f"Broadcast completed by admin {message.from_user.id}: {success_count}/{total_attempted} successful")
 
     except Exception as e:
         logger.error(f"Error in broadcast handler: {e}")
-        await message.reply_text("❌ An error occurred during broadcast. Please try again.")
+        await message.reply_text("❌ An error occurred during broadcast.")
 
-# Run the bot
 if __name__ == "__main__":
+    # Import and start keep_alive server
     try:
-        # Import and start keep_alive if it exists
-        try:
-            from keep_alive import keep_alive
-            keep_alive()
-            logger.info("Keep-alive server started")
-        except ImportError:
-            logger.info("Keep-alive module not found, continuing without web server")
-        
-        logger.info("Starting Telegram File Saver Bot...")
-        app.run()
-    except KeyboardInterrupt:
-        logger.info("Bot stopped by user")
-    except Exception as e:
-        logger.error(f"Fatal error: {e}")
+        from keep_alive import keep_alive
+        keep_alive()
+    except ImportError:
+        logger.warning("keep_alive.py not found, running without web server")
+    
+    # Load premium admins on startup
+    load_premium_admins()
+    
+    # Start the bot
+    logger.info("Starting Telegram File Saver Bot...")
+    app.run()
