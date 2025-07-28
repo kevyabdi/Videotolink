@@ -4,6 +4,8 @@ import json
 import os
 import uuid
 import logging
+import asyncio
+import time
 from datetime import datetime
 
 # Set up logging
@@ -25,7 +27,7 @@ app = Client("filetobot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 if not os.path.exists("files.json"):
     with open("files.json", "w") as f:
         json.dump({}, f)
-        logger.info("Created new files.json database")
+    logger.info("Created new files.json database")
 
 # Ensure stats.json exists for user statistics
 if not os.path.exists("stats.json"):
@@ -37,13 +39,13 @@ if not os.path.exists("stats.json"):
             "downloads": 0,
             "users": {}
         }, f, indent=2)
-        logger.info("Created new stats.json database")
+    logger.info("Created new stats.json database")
 
 # Ensure banned_users.json exists
 if not os.path.exists("banned_users.json"):
     with open("banned_users.json", "w") as f:
         json.dump([], f)
-        logger.info("Created new banned_users.json database")
+    logger.info("Created new banned_users.json database")
 
 def load_files():
     """Load file mappings from JSON database"""
@@ -102,7 +104,6 @@ def update_stats(user_id, username, action, file_type=None):
         # Save updated stats
         with open("stats.json", "w") as f:
             json.dump(stats, f, indent=2)
-        
         return True
     except Exception as e:
         logger.error(f"Error updating stats: {e}")
@@ -216,18 +217,17 @@ async def file_handler(client, message):
         if save_file_mapping(file_id, unique_id, file_type, original_caption):
             bot_me = await app.get_me()
             bot_username = bot_me.username
-
             share_link = f"https://t.me/{bot_username}?start={unique_id}"
-
+            
             file_size = ""
             if hasattr(file, 'file_size') and file.file_size:
                 size_mb = file.file_size / (1024 * 1024)
                 file_size = f" ({size_mb:.1f} MB)" if size_mb >= 1 else f" ({file.file_size} bytes)"
-
+            
             file_name = ""
             if hasattr(file, 'file_name') and file.file_name:
                 file_name = f"\n📝 Name: {file.file_name}"
-
+            
             response_text = (
                 f"✅ File uploaded successfully!\n\n"
                 f"📂 Type: {display_type}{file_size}"
@@ -235,7 +235,7 @@ async def file_handler(client, message):
                 f"🔗 Share Link:\n{share_link}\n\n"
                 f"💡 Anyone with this link can download your file!"
             )
-
+            
             await message.reply_text(response_text, parse_mode=None)
             logger.info(f"File uploaded by user {message.from_user.id}: {display_type}")
         else:
@@ -256,23 +256,21 @@ async def start_handler(client, message):
             return
 
         args = message.text.split()
-
         if len(args) == 2:
             file_key = args[1]
             files = load_files()
-
             if file_key in files:
                 file_data = files[file_key]
                 file_id = file_data.get("file_id")
                 file_type = file_data.get("file_type")
                 original_caption = file_data.get("original_caption")
-
+                
                 await message.reply_text("📤 Sending your file...")
-
+                
                 # Update download statistics
                 username = message.from_user.username or message.from_user.first_name or "Unknown"
                 update_stats(message.from_user.id, username, "download")
-
+                
                 try:
                     if file_type == "photo":
                         await client.send_photo(message.chat.id, file_id, caption=original_caption)
@@ -282,7 +280,7 @@ async def start_handler(client, message):
                         await client.send_audio(message.chat.id, file_id, caption=original_caption)
                     else:
                         await client.send_document(message.chat.id, file_id, caption=original_caption)
-
+                    
                     logger.info(f"File retrieved by user {message.from_user.id}: {file_key}")
                 except Exception as e:
                     logger.error(f"Error sending file {file_key}: {e}")
@@ -308,7 +306,6 @@ async def start_handler(client, message):
                 "• Links work indefinitely\n\n"
                 "📤 Send me a file to get started !"
             )
-
             await message.reply_text(welcome_text, parse_mode=None)
             logger.info(f"New user started the bot: {message.from_user.id}")
 
@@ -334,14 +331,14 @@ async def stats_handler(client, message):
         for user_data in stats["users"].values():
             if user_data["last_seen"] > thirty_days_ago:
                 active_users += 1
-
+        
         # Get top uploaders
         top_uploaders = sorted(
             [(uid, data) for uid, data in stats["users"].items()],
             key=lambda x: x[1]["files_uploaded"],
             reverse=True
         )[:5]
-
+        
         stats_text = (
             f"📊 **Bot Statistics**\n\n"
             f"👥 **Users:**\n"
@@ -356,12 +353,12 @@ async def stats_handler(client, message):
             f"📥 **Downloads:** {stats['downloads']}\n\n"
             f"🏆 **Top Uploaders:**\n"
         )
-
+        
         for i, (uid, data) in enumerate(top_uploaders, 1):
             username = data['username']
             files = data['files_uploaded']
             stats_text += f"{i}. @{username}: {files} files\n"
-
+        
         await message.reply_text(stats_text, parse_mode=None)
         logger.info(f"Admin {message.from_user.id} requested statistics")
 
@@ -386,20 +383,20 @@ async def users_handler(client, message):
             downloads = data['downloads']
             last_seen = data['last_seen'][:10]  # Just the date part
             users_list.append((username, files, downloads, last_seen))
-
+        
         # Sort by files uploaded
         users_list.sort(key=lambda x: x[1], reverse=True)
-
+        
         users_text = f"👥 **User List** (Total: {len(users_list)})\n\n"
         
         for i, (username, files, downloads, last_seen) in enumerate(users_list[:20], 1):
             users_text += f"{i}. @{username}\n"
-            users_text += f"   📁 Files: {files} | 📥 Downloads: {downloads}\n"
-            users_text += f"   📅 Last seen: {last_seen}\n\n"
-
+            users_text += f" 📁 Files: {files} | 📥 Downloads: {downloads}\n"
+            users_text += f" 📅 Last seen: {last_seen}\n\n"
+        
         if len(users_list) > 20:
             users_text += f"... and {len(users_list) - 20} more users"
-
+        
         await message.reply_text(users_text, parse_mode=None)
         logger.info(f"Admin {message.from_user.id} requested user list")
 
@@ -421,29 +418,24 @@ async def ban_handler(client, message):
             return
 
         try:
-            user_id_to_ban = int(args[1])
+            user_id = int(args[1])
         except ValueError:
             await message.reply_text("❌ Invalid user ID. Please provide a numeric user ID.")
             return
 
-        # Prevent admin from banning themselves
-        if user_id_to_ban == ADMIN_USER_ID:
-            await message.reply_text("❌ You cannot ban yourself!")
+        if user_id == ADMIN_USER_ID:
+            await message.reply_text("❌ Cannot ban the admin user.")
             return
 
-        if is_banned(user_id_to_ban):
-            await message.reply_text(f"⚠️ User {user_id_to_ban} is already banned.")
-            return
-
-        if ban_user(user_id_to_ban):
-            await message.reply_text(f"✅ User {user_id_to_ban} has been banned successfully.")
-            logger.info(f"Admin {message.from_user.id} banned user {user_id_to_ban}")
+        if ban_user(user_id):
+            await message.reply_text(f"✅ User {user_id} has been banned successfully.")
+            logger.info(f"Admin {message.from_user.id} banned user {user_id}")
         else:
             await message.reply_text("❌ Failed to ban user. Please try again.")
 
     except Exception as e:
         logger.error(f"Error in ban handler: {e}")
-        await message.reply_text("❌ An error occurred while banning user.")
+        await message.reply_text("❌ An error occurred while banning the user.")
 
 @app.on_message(filters.command("unban"))
 async def unban_handler(client, message):
@@ -459,28 +451,24 @@ async def unban_handler(client, message):
             return
 
         try:
-            user_id_to_unban = int(args[1])
+            user_id = int(args[1])
         except ValueError:
             await message.reply_text("❌ Invalid user ID. Please provide a numeric user ID.")
             return
 
-        if not is_banned(user_id_to_unban):
-            await message.reply_text(f"⚠️ User {user_id_to_unban} is not banned.")
-            return
-
-        if unban_user(user_id_to_unban):
-            await message.reply_text(f"✅ User {user_id_to_unban} has been unbanned successfully.")
-            logger.info(f"Admin {message.from_user.id} unbanned user {user_id_to_unban}")
+        if unban_user(user_id):
+            await message.reply_text(f"✅ User {user_id} has been unbanned successfully.")
+            logger.info(f"Admin {message.from_user.id} unbanned user {user_id}")
         else:
             await message.reply_text("❌ Failed to unban user. Please try again.")
 
     except Exception as e:
         logger.error(f"Error in unban handler: {e}")
-        await message.reply_text("❌ An error occurred while unbanning user.")
+        await message.reply_text("❌ An error occurred while unbanning the user.")
 
 @app.on_message(filters.command("banned"))
-async def banned_list_handler(client, message):
-    """Handle /banned command - Admin only - Show banned users list"""
+async def banned_handler(client, message):
+    """Handle /banned command - Admin only"""
     try:
         if not is_admin(message.from_user.id):
             await message.reply_text("❌ Access denied. This command is for administrators only.")
@@ -492,91 +480,147 @@ async def banned_list_handler(client, message):
             await message.reply_text("✅ No users are currently banned.")
             return
 
-        stats = load_stats()
         banned_text = f"🚫 **Banned Users** (Total: {len(banned_users)})\n\n"
-
+        
         for i, user_id in enumerate(banned_users, 1):
-            user_str = str(user_id)
-            username = "Unknown"
-            
-            # Try to get username from stats
-            if user_str in stats["users"]:
-                username = stats["users"][user_str].get("username", "Unknown")
-            
-            banned_text += f"{i}. @{username} (ID: {user_id})\n"
-
+            banned_text += f"{i}. User ID: {user_id}\n"
+        
         await message.reply_text(banned_text, parse_mode=None)
         logger.info(f"Admin {message.from_user.id} requested banned users list")
 
     except Exception as e:
-        logger.error(f"Error in banned list handler: {e}")
+        logger.error(f"Error in banned handler: {e}")
         await message.reply_text("❌ An error occurred while retrieving banned users list.")
 
-@app.on_message(filters.command("help"))
-async def help_handler(client, message):
-    """Handle /help command"""
-    help_text = (
-        "📖 Help - File Saver Bot\n\n"
-        "🔧 Commands:\n"
-        "• /start - Start the bot or retrieve a file\n"
-        "• /help - Show this help message\n\n"
-        "📤 Uploading Files:\n"
-        "• Send any document, video, audio, or photo\n"
-        "• Get a unique shareable link instantly\n"
-        "• Share the link with anyone\n\n"
-        "📥 Downloading Files:\n"
-        "• Click any file link you received\n"
-        "• Files are sent back automatically\n\n"
-        "💡 Tips:\n"
-        "• Links work indefinitely\n"
-        "• No file size limits (Telegram's limits apply)\n"
-        "• All file types supported\n"
-        "• Files stored securely on Telegram servers"
-    )
-    
-    # Add admin commands if user is admin
-    if is_admin(message.from_user.id):
-        help_text += (
-            "\n\n🔐 Admin Commands:\n"
-            "• /stats - View bot statistics\n"
-            "• /users - View user list\n"
-            "• /ban <user_id> - Ban a user\n"
-            "• /unban <user_id> - Unban a user\n"
-            "• /banned - View banned users list"
+@app.on_message(filters.command("broadcast"))
+async def broadcast_handler(client, message):
+    """Handle /broadcast command - Admin only"""
+    try:
+        if not is_admin(message.from_user.id):
+            await message.reply_text("❌ Access denied. This command is for administrators only.")
+            return
+
+        # Check if message is provided
+        text_parts = message.text.split(' ', 1)
+        if len(text_parts) < 2:
+            await message.reply_text(
+                "❌ Usage: /broadcast <message>\n\n"
+                "Example: /broadcast Hello everyone! This is a test broadcast message."
+            )
+            return
+
+        broadcast_message = text_parts[1]
+        
+        # Load user statistics to get all users
+        stats = load_stats()
+        all_users = list(stats["users"].keys())
+        
+        if not all_users:
+            await message.reply_text("❌ No users found in the database.")
+            return
+
+        # Send initial status message
+        status_msg = await message.reply_text(
+            f"📢 **Broadcast Started**\n\n"
+            f"📊 Total users to send: {len(all_users)}\n"
+            f"⏳ Starting broadcast..."
         )
 
-    await message.reply_text(help_text, parse_mode=None)
-
-@app.on_message(filters.text & ~filters.command(["start", "help", "stats", "users", "ban", "unban", "banned"]))
-async def text_handler(client, message):
-    """Handle regular text messages"""
-    # Check if user is banned
-    if is_banned(message.from_user.id):
-        await message.reply_text("❌ You have been banned from using this bot.")
-        logger.info(f"Banned user {message.from_user.id} tried to send text message")
-        return
+        # Initialize counters
+        success_count = 0
+        failed_count = 0
+        blocked_count = 0
         
-    await message.reply_text(
-        "📁 Send me a file to get started!\n\n"
-        "I can handle:\n"
-        "• 📄 Documents (PDF, DOC, etc.)\n"
-        "• 🎥 Videos (MP4, AVI, etc.)\n"
-        "• 🎵 Audio files (MP3, WAV, etc.)\n"
-        "• 🖼️ Photos (JPG, PNG, etc.)\n\n"
-        "Use /help for more information."
-    )
+        # Rate limiting: 30 messages per second (Telegram's limit)
+        rate_limit_delay = 1.0 / 30  # ~0.033 seconds between messages
+        
+        logger.info(f"Starting broadcast to {len(all_users)} users by admin {message.from_user.id}")
+        
+        # Send messages to all users
+        for i, user_id_str in enumerate(all_users, 1):
+            try:
+                user_id = int(user_id_str)
+                
+                # Skip banned users
+                if is_banned(user_id):
+                    failed_count += 1
+                    continue
+                
+                # Skip admin to avoid self-message
+                if user_id == ADMIN_USER_ID:
+                    continue
+                
+                # Send message to user
+                await client.send_message(
+                    chat_id=user_id,
+                    text=f"📢 **Broadcast Message**\n\n{broadcast_message}"
+                )
+                success_count += 1
+                
+                # Update status every 50 messages
+                if i % 50 == 0:
+                    try:
+                        await status_msg.edit_text(
+                            f"📢 **Broadcast in Progress**\n\n"
+                            f"📊 Progress: {i}/{len(all_users)} users\n"
+                            f"✅ Sent: {success_count}\n"
+                            f"❌ Failed: {failed_count}\n"
+                            f"🚫 Blocked: {blocked_count}\n"
+                            f"⏳ Continuing..."
+                        )
+                    except:
+                        pass  # Ignore edit errors
+                
+                # Rate limiting
+                await asyncio.sleep(rate_limit_delay)
+                
+            except Exception as e:
+                error_message = str(e).lower()
+                if "blocked" in error_message or "user_is_blocked" in error_message:
+                    blocked_count += 1
+                elif "chat not found" in error_message or "user_id_invalid" in error_message:
+                    failed_count += 1
+                else:
+                    failed_count += 1
+                    logger.warning(f"Failed to send broadcast to user {user_id_str}: {e}")
+        
+        # Send final status
+        final_text = (
+            f"📢 **Broadcast Completed**\n\n"
+            f"📊 **Statistics:**\n"
+            f"👥 Total users: {len(all_users)}\n"
+            f"✅ Successfully sent: {success_count}\n"
+            f"🚫 Blocked users: {blocked_count}\n"
+            f"❌ Failed to send: {failed_count}\n\n"
+            f"📝 **Message sent:**\n{broadcast_message[:100]}{'...' if len(broadcast_message) > 100 else ''}"
+        )
+        
+        await status_msg.edit_text(final_text)
+        
+        # Log broadcast completion
+        logger.info(
+            f"Broadcast completed by admin {message.from_user.id}. "
+            f"Success: {success_count}, Failed: {failed_count}, Blocked: {blocked_count}"
+        )
 
+    except Exception as e:
+        logger.error(f"Error in broadcast handler: {e}")
+        await message.reply_text("❌ An error occurred during broadcast. Please try again.")
+
+# Run the bot
 if __name__ == "__main__":
-    logger.info("Starting File Saver Bot...")
     try:
-        # Import and start the keep-alive server (optional for some deployments)
+        # Import and start keep_alive if it exists
         try:
             from keep_alive import keep_alive
             keep_alive()
+            logger.info("Keep-alive server started")
         except ImportError:
-            logger.info("keep_alive module not found, skipping web server")
+            logger.info("Keep-alive module not found, continuing without web server")
         
-        # Start the bot
+        logger.info("Starting Telegram File Saver Bot...")
         app.run()
+    except KeyboardInterrupt:
+        logger.info("Bot stopped by user")
     except Exception as e:
-        logger.error(f"Error starting bot: {e}")
+        logger.error(f"Fatal error: {e}")

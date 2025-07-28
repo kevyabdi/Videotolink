@@ -1,192 +1,198 @@
 # Deployment Guide
 
-This guide explains how to deploy your Telegram File Saver Bot on various platforms.
+This guide covers how to deploy the Telegram File Saver Bot on various platforms.
 
-## GitHub Repository Setup
+## Prerequisites
 
-### 1. Prepare Your Files
-- Use `main-github.py` as your main file (rename to `main.py`)
-- Use `requirements-github.txt` as your requirements file (rename to `requirements.txt`)
-- Set your admin user ID in the code
-- Never commit your actual credentials
+Before deploying, make sure you have:
 
-### 2. Upload to GitHub
-```bash
-# Initialize git repository
-git init
+1. **Telegram Bot Token** - Get it from [@BotFather](https://t.me/botfather)
+2. **Telegram API Credentials** - Get them from [my.telegram.org](https://my.telegram.org/)
+   - API_ID
+   - API_HASH
+3. **Admin User ID** - Your Telegram user ID (get it from [@userinfobot](https://t.me/userinfobot))
 
-# Add files
-git add .
+## Environment Variables
 
-# Commit
-git commit -m "Initial commit - Telegram File Saver Bot"
+Set these environment variables on your deployment platform:
 
-# Add remote repository
-git remote add origin https://github.com/yourusername/telegram-file-saver-bot.git
-
-# Push to GitHub
-git push -u origin main
+```
+API_ID=your_api_id_here
+API_HASH=your_api_hash_here
+BOT_TOKEN=your_bot_token_here
 ```
 
-## Platform Deployments
+## Deployment Options
 
-### Heroku Deployment
+### 1. Replit (Recommended for beginners)
 
-1. **Create Heroku App**
+1. **Fork this repository** to your GitHub account
+2. **Import to Replit**:
+   - Go to [Replit](https://replit.com)
+   - Click "Create Repl"
+   - Choose "Import from GitHub"
+   - Enter your repository URL
+3. **Set environment variables**:
+   - Go to "Secrets" tab (lock icon)
+   - Add your API_ID, API_HASH, and BOT_TOKEN
+4. **Configure admin user**:
+   - Edit `main.py`
+   - Replace `ADMIN_USER_ID = 1096693642` with your Telegram user ID
+5. **Run the bot**:
+   - Click the "Run" button
+   - The bot will start automatically
+
+### 2. Heroku
+
+1. **Create a Heroku app**:
    ```bash
    heroku create your-bot-name
    ```
 
-2. **Set Environment Variables**
+2. **Set environment variables**:
    ```bash
    heroku config:set API_ID=your_api_id
    heroku config:set API_HASH=your_api_hash
    heroku config:set BOT_TOKEN=your_bot_token
    ```
 
-3. **Deploy**
+3. **Deploy**:
    ```bash
+   git add .
+   git commit -m "Initial deployment"
    git push heroku main
    ```
 
-4. **Scale Worker**
-   ```bash
-   heroku ps:scale worker=1
-   ```
+4. **Keep the bot running**:
+   - The `keep_alive.py` file helps keep the bot active on Heroku
+   - Consider using Heroku Scheduler or similar services for better uptime
 
-### Railway Deployment
+### 3. Railway
 
-1. Connect your GitHub repository to Railway
-2. Set environment variables in Railway dashboard:
-   - `API_ID`
-   - `API_HASH`
-   - `BOT_TOKEN`
-3. Deploy automatically from GitHub
+1. **Connect your GitHub repository** to Railway
+2. **Add environment variables** in Railway dashboard:
+   - API_ID
+   - API_HASH  
+   - BOT_TOKEN
+3. **Deploy** - Railway will automatically deploy from your repository
 
-### Render Deployment
+### 4. VPS/Cloud Server
 
-1. Create new Web Service on Render
-2. Connect your GitHub repository
-3. Set environment variables:
-   - `API_ID`
-   - `API_HASH`
-   - `BOT_TOKEN`
-4. Set build command: `pip install -r requirements.txt`
-5. Set start command: `python main.py`
-
-### VPS/Server Deployment
-
-1. **Clone Repository**
+1. **Clone the repository**:
    ```bash
    git clone https://github.com/yourusername/telegram-file-saver-bot.git
    cd telegram-file-saver-bot
    ```
 
-2. **Install Dependencies**
+2. **Install Python dependencies**:
    ```bash
-   pip install -r requirements.txt
+   pip install pyrogram tgcrypto
    ```
 
-3. **Set Environment Variables**
+3. **Set environment variables**:
    ```bash
    export API_ID="your_api_id"
    export API_HASH="your_api_hash"
    export BOT_TOKEN="your_bot_token"
    ```
 
-4. **Run Bot**
+4. **Configure admin user**:
+   - Edit `main.py`
+   - Set your `ADMIN_USER_ID`
+
+5. **Run the bot**:
    ```bash
    python main.py
    ```
 
-5. **Run with PM2 (Recommended)**
+6. **Run in background** (optional):
    ```bash
-   npm install -g pm2
-   pm2 start ecosystem.config.js
-   pm2 startup
-   pm2 save
+   nohup python main.py &
    ```
 
-## Getting Credentials
+### 5. Docker
 
-### Telegram Bot Token
-1. Message [@BotFather](https://t.me/botfather) on Telegram
-2. Send `/newbot`
-3. Follow instructions to create your bot
-4. Copy the bot token
+1. **Create Dockerfile**:
+   ```dockerfile
+   FROM python:3.11-slim
+   
+   WORKDIR /app
+   
+   COPY . .
+   
+   RUN pip install pyrogram tgcrypto
+   
+   CMD ["python", "main.py"]
+   ```
 
-### Telegram API Credentials
-1. Go to [my.telegram.org](https://my.telegram.org)
-2. Log in with your phone number
-3. Go to "API development tools"
-4. Create a new application
-5. Copy API ID and API Hash
+2. **Build and run**:
+   ```bash
+   docker build -t telegram-file-bot .
+   docker run -e API_ID=your_api_id -e API_HASH=your_api_hash -e BOT_TOKEN=your_bot_token telegram-file-bot
+   ```
 
-### Admin User ID
-1. Message [@userinfobot](https://t.me/userinfobot) on Telegram
-2. Copy your user ID number
-3. Replace `ADMIN_USER_ID` in the code
+## Post-Deployment
 
-## Environment Variables
+### Testing Your Bot
 
-All platforms require these environment variables:
+1. **Start a chat** with your bot on Telegram
+2. **Send a file** to test file upload functionality
+3. **Test admin commands**:
+   - `/stats` - Check bot statistics
+   - `/users` - View user list
+   - `/broadcast Hello everyone!` - Test broadcast feature
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `API_ID` | Telegram API ID | `12345678` |
-| `API_HASH` | Telegram API Hash | `abcdef1234567890abcdef1234567890` |
-| `BOT_TOKEN` | Bot token from BotFather | `123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ` |
+### Monitoring
 
-## Monitoring and Logs
+- Check logs regularly for errors
+- Monitor user activity through `/stats` command
+- Keep track of banned users with `/banned` command
 
-### Heroku
-```bash
-heroku logs --tail
-```
+### Maintenance
 
-### Railway/Render
-Check platform-specific log viewers in dashboard
-
-### VPS
-```bash
-pm2 logs
-```
+- **Database files** (`files.json`, `stats.json`, `banned_users.json`) are created automatically
+- **Backup** these files regularly if running on VPS
+- **Update** the bot code by pulling latest changes from repository
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **"No module named 'pyrogram'"**
-   - Solution: Install dependencies with `pip install -r requirements.txt`
+1. **"database is locked" error**:
+   - Stop all running instances of the bot
+   - Delete any `.session` files
+   - Restart the bot
 
-2. **"Invalid API_ID or API_HASH"**
-   - Solution: Double-check credentials from my.telegram.org
+2. **Bot doesn't respond**:
+   - Check environment variables are set correctly
+   - Verify bot token is valid
+   - Check logs for error messages
 
-3. **"Bot token invalid"**
-   - Solution: Get new token from @BotFather
+3. **Admin commands not working**:
+   - Verify your user ID is correctly set in `ADMIN_USER_ID`
+   - Get your user ID from [@userinfobot](https://t.me/userinfobot)
 
-4. **"Permission denied"**
-   - Solution: Check if admin user ID is correct
+4. **Import errors**:
+   - Make sure `pyrogram` and `tgcrypto` are installed
+   - Use Python 3.8 or higher
 
-### Health Check
+### Getting Help
 
-The bot includes a web server for health checks on port 5000. This helps with:
-- Heroku keeping the bot alive
-- Platform health monitoring
-- Status verification
+- Check the [README.md](README.md) for detailed documentation
+- Review the code comments in `main.py`
+- Create an issue on GitHub if you encounter problems
 
 ## Security Notes
 
-- Never commit credentials to version control
-- Use environment variables for all sensitive data
-- Regularly rotate bot tokens and API keys
-- Monitor bot logs for suspicious activity
-- Keep dependencies updated
+- **Never commit** your API credentials to version control
+- **Use environment variables** for all sensitive data
+- **Keep your bot token secure** - treat it like a password
+- **Regularly review** banned users and statistics
+- **Monitor logs** for suspicious activity
 
-## Scaling
+## Performance Tips
 
-For high-traffic bots:
-- Use webhook instead of polling (modify code)
-- Consider using Redis for session storage
-- Implement database connection pooling
-- Use load balancers for multiple instances
+- The bot uses JSON files for storage, suitable for small to medium usage
+- For high-traffic bots, consider migrating to a proper database
+- Rate limiting is built-in for broadcast messages
+- Monitor memory usage on resource-constrained platforms
