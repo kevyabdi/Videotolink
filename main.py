@@ -297,7 +297,7 @@ async def start_handler(client, message):
                 )
         else:
             welcome_text = (
-                "👋 Welcome to File Saver Bot!\n\n"
+                "👋 Welcome to File Saver Bot! @DAAWOTV \n\n"
                 "📁 How it works:\n"
                 "1️⃣ Send me any file (document, video, audio, or photo)\n"
                 "2️⃣ Get a unique shareable download link\n"
@@ -306,7 +306,7 @@ async def start_handler(client, message):
                 "• Files are stored using Telegram's infrastructure\n"
                 "• No external hosting required\n"
                 "• Links work indefinitely\n\n"
-                "📤 Send me a file to get started!"
+                "📤 Send me a file to get started !"
             )
 
             await message.reply_text(welcome_text, parse_mode=None)
