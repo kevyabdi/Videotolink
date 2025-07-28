@@ -1,8 +1,8 @@
-# File Storage Telegram Bot
+# Telegram File Saver Bot
 
 ## Overview
 
-This is a Telegram bot built with Pyrogram that provides file storage and sharing capabilities. The bot allows users to upload files and receive unique sharing links, with administrative features for user management and statistics tracking.
+This is a Telegram bot built with Pyrogram that provides file upload, sharing, and management capabilities. The bot features a premium user system, usage analytics, admin controls, and permanent download links. It includes a Flask-based keep-alive server to maintain uptime and provides a web interface showing bot status.
 
 ## User Preferences
 
@@ -10,114 +10,85 @@ Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
-The application follows a simple monolithic architecture with file-based data persistence:
+The application follows a simple monolithic architecture with the following components:
 
-- **Bot Framework**: Pyrogram (Python Telegram bot library)
-- **Data Storage**: JSON files for lightweight persistence
-- **Authentication**: Telegram-based user identification
-- **File Management**: Local file system storage with unique identifiers
+- **Telegram Bot**: Built using Pyrogram framework for handling Telegram API interactions
+- **File Storage**: Local JSON-based storage for metadata and user data
+- **Keep-Alive Server**: Flask web server for health monitoring and uptime maintenance
+- **User Management**: Role-based system with regular users, premium users, and admin privileges
 
 ## Key Components
 
-### 1. Bot Client
-- **Technology**: Pyrogram Client
-- **Purpose**: Handles Telegram API interactions
-- **Configuration**: Environment-based credentials (API_ID, API_HASH, BOT_TOKEN)
+### 1. Bot Core (`main.py`)
+- **Purpose**: Main bot application handling Telegram interactions
+- **Framework**: Pyrogram client for Telegram Bot API
+- **Authentication**: Uses API credentials from environment variables
+- **User Management**: Implements admin controls and user privilege systems
 
-### 2. Data Storage
-- **files.json**: Stores file metadata and sharing information
-- **stats.json**: Tracks user statistics and usage analytics
-- **banned_users.json**: Maintains list of banned users for moderation
+### 2. Keep-Alive Service (`keep_alive.py`)
+- **Purpose**: Maintains bot uptime with a web health endpoint
+- **Framework**: Flask web server
+- **Features**: 
+  - Status dashboard at root endpoint
+  - Health check endpoint at `/health`
+  - Real-time status updates with timestamps
 
-### 3. User Management
-- **Admin System**: Single admin user with elevated privileges
-- **User Tracking**: Statistics collection for each user interaction
-- **Ban System**: Admin can ban/unban users
-- **Broadcast System**: Admin can send messages to all registered users
-
-### 4. File Handling
-- **Upload Processing**: Handles multiple file types (documents, videos, audio, photos)
-- **Unique Identifiers**: UUID-based file identification system
-- **Download Tracking**: Monitors file access and usage patterns
+### 3. Data Storage
+- **Files Database** (`files.json`): Stores file metadata and sharing information
+- **User Statistics** (`stats.json`): Tracks usage analytics and user data
+- **Premium Users** (`premium_users.json`): Manages premium user list
+- **Banned Users** (`banned_users.json`): Maintains banned user list
 
 ## Data Flow
 
-1. **File Upload**:
-   - User sends file to bot
-   - Bot generates unique UUID for file
-   - File metadata stored in files.json
-   - User receives shareable link
-
-2. **File Retrieval**:
-   - User requests file via unique ID
-   - Bot validates access permissions
-   - File served to authorized user
-   - Download statistics updated
-
-3. **Admin Operations**:
-   - Statistics viewing and management
-   - User ban/unban functionality
-   - Broadcast messaging to all users
-   - System monitoring capabilities
+1. **File Upload**: Users send files to bot → Bot processes and stores metadata → Generates unique sharing links
+2. **File Sharing**: Users request files via links → Bot validates permissions → Serves file content
+3. **User Management**: Admin commands → Update user status in respective JSON files
+4. **Analytics**: All interactions → Update statistics in stats.json
+5. **Health Monitoring**: External services → Query Flask endpoints → Receive status updates
 
 ## External Dependencies
 
-### Required Environment Variables
-- `API_ID`: Telegram API application ID
-- `API_HASH`: Telegram API hash
-- `BOT_TOKEN`: Telegram bot token
-
-### Python Packages
-- **pyrogram**: Telegram bot framework
-- **Standard libraries**: json, os, uuid, logging, asyncio, time, datetime
+- **Pyrogram**: Telegram MTProto API client library
+- **Flask**: Web framework for keep-alive functionality
+- **Environment Variables**: 
+  - `API_ID`: Telegram API application ID
+  - `API_HASH`: Telegram API application hash
+  - `BOT_TOKEN`: Telegram bot token
 
 ## Deployment Strategy
 
-### Local Development
-- File-based storage for simplicity
-- Environment variable configuration
-- Direct Python execution
+The application is designed for cloud deployment with the following characteristics:
 
-### Production Considerations
-- **Scalability**: Current JSON-based storage suitable for small to medium usage
-- **Data Persistence**: Files stored locally (consider cloud storage for production)
-- **Monitoring**: Basic logging implemented
-- **Security**: Admin-only access for sensitive operations
+- **Stateless Design**: All data stored in JSON files for simplicity
+- **Environment Configuration**: Credentials managed via environment variables
+- **Health Monitoring**: Built-in Flask server for uptime checks
+- **Logging**: Structured logging for debugging and monitoring
 
-### Potential Improvements
-- Database migration (SQLite/PostgreSQL) for better performance
-- Cloud file storage integration
-- Enhanced error handling and recovery
-- Rate limiting and spam protection
-- Backup and recovery mechanisms
+### Configuration Requirements
+- Python environment with Pyrogram and Flask
+- Telegram bot token and API credentials
+- Admin user ID configuration (currently hardcoded: 1096693642)
+- File system access for JSON data storage
 
-## Key Design Decisions
+### Key Features
+- **Premium User System**: Differentiated access levels with upgrade buttons
+- **Upload Limits**: Free users limited to 10 uploads, premium users unlimited
+- **Ban System**: Admin can ban/unban users
+- **Broadcast Messaging**: Admin broadcast capabilities
+- **Analytics**: Comprehensive usage tracking with premium user counts
+- **Permanent Links**: Persistent file sharing URLs
+- **Promotional Features**: "Join Daawotv" buttons on all downloads
+- **Interactive Upgrade System**: Premium plan details and contact buttons
 
-### JSON File Storage
-- **Problem**: Need simple, lightweight data persistence
-- **Solution**: JSON files for metadata storage
-- **Rationale**: Easy to implement, human-readable, sufficient for initial requirements
-- **Trade-offs**: Limited scalability but excellent for prototyping and small deployments
+### Recent Changes (July 28, 2025)
+- ✅ Fixed /help command functionality
+- ✅ Added "Join Daawotv" button to all file downloads linking to t.me/daawotv
+- ✅ Implemented premium user system with /premium and /unpremium admin commands
+- ✅ Added usage tracking showing premium vs free user statistics in /stats
+- ✅ Created interactive upgrade buttons in /help and /start commands
+- ✅ Added premium plan details with pricing and contact information
+- ✅ Integrated Flask keep-alive server running on port 5000
+- ✅ Fixed database lock issues and session management
 
-### Pyrogram Framework
-- **Problem**: Need reliable Telegram bot interaction
-- **Solution**: Pyrogram client library
-- **Rationale**: Modern async support, comprehensive API coverage, good documentation
-- **Alternatives**: python-telegram-bot (more common but different architecture)
-
-### UUID-based File Identification
-- **Problem**: Need unique, secure file identifiers
-- **Solution**: UUID generation for each file
-- **Rationale**: Cryptographically secure, prevents enumeration attacks
-- **Benefits**: Scalable, collision-resistant, privacy-preserving
-
-## Recent Changes
-
-### July 28, 2025 - GitHub Repository Setup
-- Created comprehensive README.md with full documentation
-- Added MIT license and professional .gitignore file
-- Implemented DEPLOYMENT.md with multi-platform deployment instructions
-- Added keep_alive.py for hosting platform compatibility
-- Created requirements_sample.txt for dependency management
-- Confirmed broadcast functionality is fully operational
-- Enhanced project structure for GitHub deployment and sharing
+The architecture prioritizes simplicity and rapid deployment while providing essential bot functionality for file management and user administration.
