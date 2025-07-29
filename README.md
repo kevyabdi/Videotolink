@@ -1,174 +1,131 @@
-# Telegram File Saver Bot - Premium Edition
+# Telegram File Saver Bot
 
-A powerful Telegram bot with premium features that allows users to upload files and receive permanent shareable download links. Built with Python and Pyrogram, featuring comprehensive admin controls, premium user management, and usage limits.
-
-## 🌟 Premium Features
-
-### Premium System
-- **💎 Premium Users**: Unlimited uploads, no daily limits, no waiting periods
-- **🆓 Free Users**: 5 uploads per day with 4-hour cooldown after limit
-- **📺 JOIN DAAWO Button**: Automatically added to all video messages linking to https://t.me/daawotv
-- **📞 Admin Contact**: @viizet for premium upgrades and support
-
-### Enhanced Commands
-- `/premium <user_id>` - Upgrade user to premium (admin only)
-- `/unpremium <user_id>` - Remove premium status (admin only)
-- `/upgrade` - Get premium upgrade information
-- `/myplan` - Check current plan status and usage
+A simple and reliable Telegram bot that allows users to upload files and receive permanent sharing links. Built with Python and Pyrogram, this bot provides secure file storage using Telegram's infrastructure.
 
 ## Features
 
-### Core Functionality
+- 📁 **File Upload**: Support for all file types (videos, documents, audio, photos)
+- 🔗 **Permanent Links**: Generate shareable download links that never expire
+- 🔒 **Secure Storage**: Files stored using Telegram's secure infrastructure
+- 📺 **Community Integration**: Automatic JOIN DAAWO button on shared videos
+- 💬 **Direct Support**: Easy access to bot owner via DM button
+- 🚀 **Unlimited Usage**: No restrictions on file uploads or downloads
 
-- **File Upload & Sharing**: Upload any file type (documents, videos, audio, photos) and get permanent download links
-- **Original Caption Preservation**: Videos retain their original captions when downloaded
-- **Unlimited Storage**: Uses Telegram's infrastructure for file hosting
-- **Permanent Links**: Generated links work indefinitely
-- **Smart Usage Limits**: Free users get 5 uploads/day, premium users get unlimited
+## How It Works
 
-### Premium Features
+1. **Upload**: Send any file to the bot
+2. **Get Link**: Receive a permanent sharing link instantly
+3. **Share**: Anyone can download the file using the link
+4. **Access**: Files remain accessible through Telegram's servers
 
-- **Usage Tracking**: Daily upload limits with automatic reset
-- **Cooldown System**: 4-hour waiting period for free users after limit
-- **Premium Management**: Complete admin control over premium users
-- **JOIN DAAWO Integration**: Automatic button on video messages
-- **Plan Status**: Users can check their current plan and usage
+## Bot Commands
 
-### Admin Features
+- `/start` - Welcome message with quick access buttons
+- Send any file - Get a shareable download link
 
-- **User Statistics**: Comprehensive analytics including premium user counts
-- **Premium Management**: Upgrade/downgrade users with simple commands
-- **User Management**: View detailed user lists with premium status
-- **Ban/Unban System**: Complete user access control with premium preservation
-- **Broadcast System**: Send messages to all registered users
-- **Real-time Monitoring**: Track bot performance and premium user activity
+## Technical Stack
 
-## Installation
+- **Language**: Python 3.11
+- **Bot Framework**: Pyrogram
+- **Web Server**: Flask (for status monitoring)
+- **Data Storage**: JSON files for lightweight persistence
+- **File Hosting**: Telegram's CDN infrastructure
+
+## Project Structure
+
+```
+├── main.py                 # Main bot application
+├── keep_alive.py          # Flask web server for status
+├── files.json            # File metadata storage
+├── stats.json            # Usage statistics
+├── banned_users.json     # User moderation
+├── premium_users.json    # Premium user data (unused)
+└── pyproject.toml        # Python dependencies
+```
+
+## Setup & Deployment
 
 ### Prerequisites
 
-- Python 3.8+
-- Telegram Bot Token (from [@BotFather](https://t.me/botfather))
-- Telegram API credentials (from [my.telegram.org](https://my.telegram.org/))
-
-### Setup Steps
-
-1. **Clone the repository**
-
-```bash
-git clone https://github.com/yourusername/telegram-file-saver-bot.git
-cd telegram-file-saver-bot
-```
-
-2. **Install dependencies**
-
-```bash
-pip install pyrogram tgcrypto flask
-```
-
-3. **Configure environment variables**
-
-Set environment variables:
-
-```bash
-export API_ID="your_api_id"
-export API_HASH="your_api_hash"
-export BOT_TOKEN="your_bot_token"
-```
-
-4. **Set admin user ID**
-
-Edit `main.py` and replace the admin user ID:
-
-```python
-ADMIN_USER_ID = YOUR_TELEGRAM_USER_ID  # Replace with your actual Telegram user ID
-```
-
-5. **Run the bot**
-
-```bash
-python main.py
-```
-
-## Configuration
+- Python 3.11+
+- Telegram Bot Token (from @BotFather)
+- Telegram API credentials (API_ID, API_HASH)
 
 ### Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `API_ID` | Telegram API ID from my.telegram.org | Yes |
-| `API_HASH` | Telegram API Hash from my.telegram.org | Yes |
-| `BOT_TOKEN` | Bot token from @BotFather | Yes |
+Set these required environment variables:
 
-### Admin Configuration
-
-- Set your Telegram user ID in the `ADMIN_USER_ID` variable in `main.py`
-- Only this user will have access to admin commands
-
-## Usage
-
-### For Users
-
-1. **Upload Files**: Send any file to the bot
-2. **Get Share Link**: Receive a permanent download link
-3. **Check Plan**: Use `/myplan` to see your current status
-4. **Upgrade**: Use `/upgrade` to get premium information
-
-### For Admins
-
-- `/stats` - View bot statistics with premium analytics
-- `/users` - View user list and activity with premium status
-- `/premium <user_id>` - Upgrade user to premium
-- `/unpremium <user_id>` - Remove premium status
-- `/ban <user_id>` - Ban a user from using the bot
-- `/unban <user_id>` - Remove ban from a user
-- `/banned` - View list of banned users
-- `/broadcast <message>` - Send message to all registered users
-
-## File Structure
-
-```
-telegram-file-saver-bot/
-├── main.py              # Main bot application with premium features
-├── keep_alive.py        # Web server for hosting platforms
-├── files.json          # File mappings database (auto-generated)
-├── stats.json          # User statistics with premium tracking (auto-generated)
-├── banned_users.json   # Banned users list (auto-generated)
-├── premium_users.json  # Premium users database (auto-generated)
-├── replit.md           # Project documentation
-└── pyproject.toml      # Python dependencies
+```bash
+BOT_TOKEN=your_bot_token_here
+API_ID=your_api_id_here
+API_HASH=your_api_hash_here
 ```
 
-## Premium System Details
+### Installation
 
-### Free Users
-- 5 file uploads per day
-- 4-hour cooldown after hitting daily limit
-- All basic features included
-- Permanent download links
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   pip install pyrogram flask tgcrypto
+   ```
+3. Set environment variables
+4. Run the bot:
+   ```bash
+   python main.py
+   ```
 
-### Premium Users
-- Unlimited file uploads
-- No daily limits or cooldowns
-- Priority support
-- All features included
+### Replit Deployment
 
-### Admin Management
-- Instant premium upgrades/downgrades
-- Real-time usage monitoring
-- Premium user analytics
-- Complete user management
+This bot is optimized for Replit deployment:
 
-## Contact & Support
+1. Import the project to Replit
+2. Add secrets in the Secrets tab:
+   - `BOT_TOKEN`
+   - `API_ID` 
+   - `API_HASH`
+3. Click Run - the bot will start automatically
 
-- **Admin Contact**: @viizet
-- **JOIN DAAWO**: https://t.me/daawotv
-- Create issues for bugs or feature requests
+## Features Overview
+
+### File Sharing
+- Supports all Telegram file types
+- Generates unique shareable links
+- Files never expire or get deleted
+- Fast downloads via Telegram's CDN
+
+### User Interface
+- Clean welcome message with helpful buttons
+- Simple help system
+- Direct contact with bot owner (@viizet)
+- Community access via DAAWO channel
+
+### Data Management
+- Lightweight JSON-based storage
+- Automatic user registration
+- Download statistics tracking
+- Banned user management
+
+## Status Monitoring
+
+The bot includes a Flask web server for status monitoring:
+
+- **Port**: 5000
+- **Status endpoint**: `/status` - JSON status information
+- **Features page**: `/features` - Feature documentation
+
+## Community
+
+- **Support Channel**: [@daawotv](https://t.me/daawotv)
+- **Contact Admin**: [@viizet](https://t.me/viizet)
 
 ## License
 
-This project is licensed under the MIT License.
+This project is open source and available under standard terms.
+
+## Contributing
+
+Feel free to submit issues, feature requests, or pull requests to improve the bot.
 
 ---
 
-**Note**: Keep your bot token and API credentials secure. Never commit them to version control.
+**Made with ❤️ for the DAAWO community**

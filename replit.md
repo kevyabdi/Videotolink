@@ -1,161 +1,117 @@
-# File Storage Telegram Bot - Premium Edition
+# Telegram File Saver Bot - Premium Edition
 
 ## Overview
 
-This is an enhanced Telegram bot built with Pyrogram that provides file storage and sharing capabilities with a comprehensive premium user system. The bot allows users to upload files and receive unique sharing links, with usage limits for free users and unlimited access for premium users, plus administrative features for user management and statistics tracking.
+This is a Telegram bot built with Python and Pyrogram that provides file storage and sharing capabilities with a comprehensive premium user system. The bot allows users to upload files and receive permanent shareable download links, with enhanced features for premium users including unlimited uploads and no waiting periods.
 
 ## User Preferences
 
-Preferred communication style: Simple, everyday language with premium features integration.
+Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
-The application follows a simple monolithic architecture with enhanced file-based data persistence:
+The application follows a monolithic architecture with file-based data persistence:
 
 - **Bot Framework**: Pyrogram (Python Telegram bot library)
-- **Data Storage**: Enhanced JSON files for lightweight persistence with premium tracking
+- **Data Storage**: JSON files for lightweight persistence
+- **Web Interface**: Flask web server for status monitoring
 - **Authentication**: Telegram-based user identification with premium status
-- **File Management**: Local file system storage with unique identifiers
-- **Premium System**: JSON-based premium user management
-- **Usage Limits**: Daily upload tracking with cooldown management
+- **File Management**: Telegram's infrastructure for file hosting
+- **Premium System**: JSON-based premium user management with usage tracking
 
 ## Key Components
 
-### 1. Bot Client
+### 1. Bot Client (`main.py`)
 - **Technology**: Pyrogram Client
-- **Purpose**: Handles Telegram API interactions with premium features
+- **Purpose**: Handles all Telegram API interactions including message processing, file uploads, and premium features
 - **Configuration**: Environment-based credentials (API_ID, API_HASH, BOT_TOKEN)
-- **New Features**: Inline keyboard support for JOIN DAAWO buttons
+- **Features**: Supports all file types, inline keyboards, callback queries, and admin commands
 
-### 2. Enhanced Data Storage
-- **files.json**: Stores file metadata and sharing information
-- **stats.json**: Enhanced with daily upload tracking and premium statistics
-- **banned_users.json**: Maintains list of banned users for moderation
-- **premium_users.json**: NEW - Premium user management with timestamps
+### 2. Data Storage Layer
+- **files.json**: Stores file metadata and unique sharing identifiers
+- **stats.json**: Comprehensive statistics including user data, file counts, download tracking, and premium metrics
+- **banned_users.json**: List of banned users for moderation
+- **premium_users.json**: Premium user database with timestamps and status
 
-### 3. Premium User Management
-- **Admin System**: Single admin user with premium management privileges
-- **Premium Tracking**: JSON-based premium user database
-- **Usage Limits**: 5 files/day for free users, unlimited for premium
-- **Cooldown System**: 4-hour waiting period after free limit reached
-- **Plan Status**: Real-time tracking of user plan and usage
+### 3. Premium Management System
+- **Admin Controls**: Single admin user (ID: 1096693642) with full premium management privileges
+- **Usage Limits**: Free users limited to 5 uploads per day, premium users get unlimited access
+- **Cooldown System**: 4-hour waiting period for free users after reaching daily limit
+- **Plan Tracking**: Real-time monitoring of user plan status and daily usage
 
-### 4. Enhanced User Management
-- **User Tracking**: Enhanced statistics collection with premium status
-- **Ban System**: Admin can ban/unban users with premium status preservation
+### 4. Web Status Interface (`keep_alive.py`)
+- **Technology**: Flask web server
+- **Purpose**: Provides HTTP endpoints for bot status monitoring and feature documentation
+- **Endpoints**: 
+  - `/` - Basic status page
+  - `/status` - JSON status with premium system info
+  - `/features` - Detailed feature breakdown for premium vs free users
+
+### 5. User Management
+- **Registration**: Automatic user registration on first interaction
+- **Statistics Tracking**: Comprehensive user analytics with premium status
+- **Ban System**: Admin can ban/unban users while preserving premium status
 - **Broadcast System**: Admin can send messages to all registered users
-- **Contact Integration**: @viizet admin contact for premium upgrades
-
-### 5. File Handling with Premium Features
-- **Upload Processing**: Handles multiple file types with usage limit checking
-- **Unique Identifiers**: UUID-based file identification system
-- **Download Tracking**: Monitors file access and usage patterns
-- **Video Enhancement**: JOIN DAAWO button automatically added to videos
-- **Premium Benefits**: Unlimited uploads for premium users
 
 ## Data Flow
 
-### 1. File Upload (Enhanced)
-- User sends file to bot
-- Bot checks user premium status and usage limits
-- For free users: Verify daily limit (5 files) and cooldown status
-- For premium users: Allow unlimited uploads
-- Bot generates unique UUID for file
-- File metadata stored in files.json with enhanced tracking
-- User receives shareable link with plan status information
+### File Upload Process
+1. User sends file to bot
+2. System checks user's premium status and daily usage limits
+3. If within limits, file is processed and unique ID generated
+4. File metadata stored in files.json with permanent Telegram file_id
+5. User receives shareable download link
+6. Usage statistics updated
 
-### 2. File Retrieval (Enhanced)
-- User requests file via unique ID
-- Bot validates access permissions and ban status
-- File served to authorized user
-- For videos: JOIN DAAWO button automatically added
-- Download statistics updated with premium tracking
+### Premium Management Flow
+1. Admin uses `/premium <user_id>` command
+2. User ID added to premium_users.json with timestamp
+3. User gains unlimited upload access and no cooldown periods
+4. Premium status reflected in all user interactions
 
-### 3. Premium Management
-- Admin upgrades/downgrades users with /premium and /unpremium commands
-- Premium status tracked in premium_users.json
-- Real-time plan checking with /myplan command
-- Usage statistics include premium vs free user analytics
-
-### 4. Admin Operations (Enhanced)
-- Premium user statistics and management
-- Enhanced user ban/unban functionality
-- Broadcast messaging to all users
-- System monitoring with premium analytics
-- Usage limit monitoring and enforcement
+### Download Process
+1. User accesses shared link with unique file ID
+2. Bot retrieves file metadata from files.json
+3. File served directly from Telegram's servers
+4. Download count incremented in statistics
 
 ## External Dependencies
 
-### Required Environment Variables
-- `API_ID`: Telegram API application ID
-- `API_HASH`: Telegram API hash
-- `BOT_TOKEN`: Telegram bot token
+### Required Packages
+- **Pyrogram**: Telegram bot framework for Python
+- **Flask**: Lightweight web framework for status interface
+- **Threading**: For running Flask server alongside bot
 
-### Python Packages
-- **pyrogram**: Telegram bot framework with inline keyboard support
-- **flask**: Web server for keep-alive functionality
-- **Standard libraries**: json, os, uuid, logging, asyncio, time, datetime, timedelta
+### Telegram Integration
+- **Telegram Bot API**: Core bot functionality
+- **File Storage**: Uses Telegram's infrastructure for permanent file hosting
+- **Inline Keyboards**: For JOIN DAAWO buttons on video messages
 
-### External Integrations
-- **JOIN DAAWO**: https://t.me/daawotv (automatic button on videos)
-- **Admin Contact**: @viizet (premium upgrades and support)
+### Environment Variables
+- `API_ID`: Telegram API ID for bot authentication
+- `API_HASH`: Telegram API hash for bot authentication
+- `BOT_TOKEN`: Bot token from @BotFather
 
 ## Deployment Strategy
 
-### Local Development
-- Enhanced file-based storage for premium system
-- Environment variable configuration
-- Direct Python execution with premium features
+### File-Based Persistence
+- **Rationale**: Simple JSON files chosen for lightweight deployment without database dependencies
+- **Data Files**: All user data, file metadata, and premium status stored in JSON format
+- **Backup Strategy**: JSON files can be easily backed up and restored
 
-### Production Considerations
-- **Scalability**: JSON-based storage suitable for small to medium premium user base
-- **Data Persistence**: Enhanced files stored locally with premium tracking
-- **Premium Management**: Real-time premium status checking
-- **Monitoring**: Enhanced logging with premium user activity
-- **Security**: Admin-only access for premium management operations
+### Process Management
+- **Multi-Threading**: Flask web server runs in separate thread from main bot
+- **Error Handling**: Comprehensive logging and error recovery
+- **Monitoring**: Web interface provides real-time status monitoring
 
-### Potential Improvements
-- Database migration (SQLite/PostgreSQL) for better premium user management
-- Payment integration for automated premium upgrades
-- Enhanced analytics dashboard for premium user tracking
-- Bulk premium user management tools
-- Premium user referral system
+### Premium Features Integration
+- **JOIN DAAWO Button**: Automatically added to video messages linking to https://t.me/daawotv
+- **Admin Contact**: @viizet contact integrated for premium upgrades
+- **Usage Limits**: Daily reset system with persistent tracking across restarts
 
-## Key Design Decisions
+### Scalability Considerations
+- **File Storage**: Leverages Telegram's CDN for file distribution
+- **User Management**: JSON-based storage suitable for moderate user bases
+- **Premium System**: Designed for easy migration to database if needed
 
-### Premium System Architecture
-- **Problem**: Need to limit free users while providing premium benefits
-- **Solution**: JSON-based premium user tracking with daily usage limits
-- **Rationale**: Simple implementation, flexible upgrade/downgrade system
-- **Trade-offs**: Manual premium management but excellent control and transparency
-
-### Usage Limit Implementation
-- **Problem**: Prevent abuse while encouraging premium upgrades
-- **Solution**: Daily upload limits (5 for free) with 4-hour cooldown
-- **Rationale**: Balances user experience with resource management
-- **Benefits**: Clear upgrade incentive, fair usage policy, admin control
-
-### JOIN DAAWO Integration
-- **Problem**: Community building and engagement for video content
-- **Solution**: Automatic inline button on all video messages
-- **Rationale**: Non-intrusive promotion, enhances user experience
-- **Implementation**: Pyrogram InlineKeyboardMarkup with direct link
-
-### Admin Contact System
-- **Problem**: Premium upgrade requests and user support
-- **Solution**: Integrated @viizet contact in messages and commands
-- **Rationale**: Clear support channel, professional user experience
-- **Benefits**: Centralized support, upgrade request handling
-
-## Enhanced JSON File Storage
-
-### Premium Users Database (premium_users.json)
-```json
-{
-  "user_id": {
-    "username": "user_name",
-    "is_premium": true,
-    "upgraded_at": "2025-07-29T10:00:00",
-    "downgraded_at": null
-  }
-}
+The architecture prioritizes simplicity and reliability while providing comprehensive premium features. The file-based approach allows for easy deployment and maintenance while the premium system adds monetization capabilities through usage restrictions and upgrade paths.

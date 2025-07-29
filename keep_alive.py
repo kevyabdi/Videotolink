@@ -35,8 +35,8 @@ def features():
             "priority_support": "Premium users only"
         },
         "free_features": {
-            "daily_uploads": "5 files per day",
-            "cooldown_period": "4 hours after limit",
+            "daily_uploads": "10 files per day",
+            "cooldown_period": "5 hours after limit",
             "file_sharing": "Permanent download links"
         },
         "admin_commands": [
@@ -57,10 +57,10 @@ def features():
     }
 
 def run():
-    app.run(host='0.0.0.0', port=8080, debug=False)
+    app.run(host='0.0.0.0', port=5000, debug=False)
 
 def keep_alive():
     t = Thread(target=run)
     t.daemon = True
     t.start()
-    print("Keep-alive server started on port 8080 with premium features")
+    print("Keep-alive server started on port 5000 with premium features")
