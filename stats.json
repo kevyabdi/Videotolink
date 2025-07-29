@@ -1,35 +1,35 @@
 {
   "total_users": 2,
-  "total_files": 5,
+  "total_files": 4,
   "files_by_type": {
     "document": 0,
-    "video": 5,
+    "video": 1,
     "audio": 0,
-    "photo": 0
+    "photo": 3
   },
-  "downloads": 2,
+  "downloads": 4,
   "users": {
     "1096693642": {
       "username": "viizet",
       "files_uploaded": 2,
-      "downloads": 1,
-      "first_seen": "2025-07-29T08:53:33.201356",
-      "last_seen": "2025-07-29T10:04:51.275199",
+      "downloads": 2,
+      "first_seen": "2025-07-29T10:48:15.287412",
+      "last_seen": "2025-07-29T11:05:18.848714",
       "daily_uploads": {
         "2025-07-29": 2
       },
-      "last_upload_time": "2025-07-29T09:10:15.418200"
+      "last_upload_time": "2025-07-29T11:05:00.180069"
     },
     "5616403687": {
       "username": "shineemo",
-      "files_uploaded": 3,
-      "downloads": 1,
-      "first_seen": "2025-07-29T08:54:38.537733",
-      "last_seen": "2025-07-29T09:14:44.286325",
+      "files_uploaded": 2,
+      "downloads": 2,
+      "first_seen": "2025-07-29T10:52:55.401715",
+      "last_seen": "2025-07-29T10:53:57.083878",
       "daily_uploads": {
-        "2025-07-29": 3
+        "2025-07-29": 2
       },
-      "last_upload_time": "2025-07-29T09:14:41.034285"
+      "last_upload_time": "2025-07-29T10:53:43.116900"
     }
   }
 }

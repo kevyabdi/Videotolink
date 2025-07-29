@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 # Get credentials from environment variables with proper fallbacks
 API_ID = int(os.getenv("API_ID", "26176218"))
 API_HASH = os.getenv("API_HASH", "4a50bc8acb0169930f5914eb88091736")
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8452579938:AAGeNe_GEes9iiCDRz99bk94ubkbTbbzm7M")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8271624089:AAG8g8IXhAoFW6Wf-6Yp1yob6XInwKsFuMY")
 
 # Admin user ID
 ADMIN_USER_ID = 1096693642
@@ -357,13 +357,12 @@ def setup_handlers():
                 "• No external hosting required\n"
                 "• Links work indefinitely\n\n"
                 "📤 Send me a file to get started!\n\n"
-                "📞 Need help? Contact Admin: @viizet"
+                "💡 Type /help for more information"
             )
 
-            # Create inline keyboard with DM Owner and DAAWO buttons
+            # Create inline keyboard with only Join DAAWO button
             keyboard = InlineKeyboardMarkup([
                 [
-                    InlineKeyboardButton("💬 DM Owner", url="https://t.me/viizet"),
                     InlineKeyboardButton("📺 Join DAAWO ↗", url="https://t.me/daawotv")
                 ]
             ])
@@ -382,6 +381,58 @@ def setup_handlers():
         except Exception as e:
             logger.error(f"Error in start command: {e}")
             await message.reply_text("❌ An error occurred. Please try again later.\n\n📞 Contact Admin: @viizet")
+
+    @app.on_message(filters.command("help"))
+    async def help_command(client, message):
+        """Handle /help command with detailed help information and DM Owner button"""
+        try:
+            # Check if user is banned
+            if is_banned(message.from_user.id):
+                await message.reply_text("❌ You have been banned from using this bot.\n\n📞 Contact Admin: @viizet")
+                return
+
+            # Update user statistics
+            username = message.from_user.username or message.from_user.first_name or "Unknown"
+            update_stats(message.from_user.id, username, "help")
+
+            help_text = (
+                "🔒 **File Sharing Bot Help**\n\n"
+                "**📤 How to use:**\n"
+                "• Send any file (document, video, audio, photo)\n"
+                "• Get a permanent sharing link instantly\n"
+                "• Share the link with anyone\n\n"
+                "**✨ Features:**\n"
+                "• No file size limits (Telegram limits apply)\n"
+                "• Files never expire\n"
+                "• Secure storage on Telegram servers\n"
+                "• No registration required\n\n"
+                "**🎯 Commands:**\n"
+                "/start - Welcome message\n"
+                "/help - Show this help message\n\n"
+                "**📞 Need assistance?**\n"
+                "Contact the bot owner for support or questions."
+            )
+
+            # Create inline keyboard with DM Owner and Join DAAWO buttons
+            keyboard = InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton("💬 DM Owner", url="https://t.me/viizet"),
+                    InlineKeyboardButton("📺 Join DAAWO ↗", url="https://t.me/daawotv")
+                ]
+            ])
+
+            await message.reply_text(help_text, reply_markup=keyboard)
+            logger.info(f"Sent help message to user {message.from_user.id}")
+
+        except (SessionRevoked, AuthKeyUnregistered, Unauthorized) as e:
+            logger.warning(f"Session error in help_command: {e}")
+            recovered_client = await handle_session_error(client, e)
+            if recovered_client:
+                # Retry the command with recovered session
+                await help_command(recovered_client, message)
+        except Exception as e:
+            logger.error(f"Error in help_command: {e}")
+            await message.reply_text("❌ Sorry, something went wrong. Please try again later.")
 
     @app.on_message(filters.document | filters.video | filters.audio | filters.photo)
     async def file_handler(client, message):
@@ -457,22 +508,14 @@ def setup_handlers():
                     f"✅ {display_type} uploaded successfully!\n\n"
                     f"📁 **File:** `{file_name}`\n"
                     f"📊 **Size:** {size_str}\n"
-                    f"🔗 **Share Link:** {share_link}\n\n"
-                    f"💡 Anyone can access your file using this link!"
+                    f"🔗 **Share Link:** `{share_link}`\n\n"
+                    f"📋 Use the Copy Link button to easily share this file!"
                 )
 
-                # Create inline keyboard
-                keyboard_buttons = [
-                    [InlineKeyboardButton("🔗 Copy Link", url=share_link)]
-                ]
-
-                # Add JOIN DAAWO button for videos
-                if file_type == "video":
-                    keyboard_buttons.append([
-                        InlineKeyboardButton("📺 JOIN DAAWO ↗", url="https://t.me/daawotv")
-                    ])
-
-                keyboard = InlineKeyboardMarkup(keyboard_buttons)
+                # Create inline keyboard with only Copy Link button
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📋 Copy Link", url=f"https://t.me/share/url?url={share_link}")]
+                ])
 
                 await message.reply_text(response_text, reply_markup=keyboard)
                 logger.info(f"User {message.from_user.id} uploaded {file_type}: {file_name}")
@@ -512,26 +555,13 @@ def setup_handlers():
             username = message.from_user.username or message.from_user.first_name or "Unknown"
             update_stats(message.from_user.id, username, "download")
 
-            # Send the file back to user
-            caption_text = f"📥 File shared via File Saver Bot\n\n📞 Contact Admin: @viizet"
-            
-            if original_caption:
-                caption_text = f"{original_caption}\n\n---\n{caption_text}"
+            # Send the file back to user with original caption only
+            caption_text = original_caption if original_caption else None
 
-            # Create inline keyboard
-            keyboard_buttons = []
-            
-            # Add JOIN DAAWO button for videos
-            if file_type == "video":
-                keyboard_buttons.append([
-                    InlineKeyboardButton("📺 JOIN DAAWO ↗", url="https://t.me/daawotv")
-                ])
-            
-            keyboard_buttons.append([
-                InlineKeyboardButton("💬 DM Owner", url="https://t.me/viizet")
+            # Create inline keyboard with only Join DAAWO button for shared files
+            keyboard = InlineKeyboardMarkup([
+                [InlineKeyboardButton("📺 Join DAAWO ↗", url="https://t.me/daawotv")]
             ])
-
-            keyboard = InlineKeyboardMarkup(keyboard_buttons)
 
             # Send file based on type
             if file_type == "document":
@@ -604,6 +634,93 @@ def setup_handlers():
         except Exception as e:
             logger.error(f"Error in stats command: {e}")
             await message.reply_text(f"❌ Error retrieving stats: {e}")
+
+    @app.on_message(filters.command("ban") & filters.user(ADMIN_USER_ID))
+    async def ban_command(client, message):
+        """Ban a user (admin only)"""
+        try:
+            if len(message.command) < 2:
+                await message.reply_text("❌ Usage: /ban <user_id>\n\nExample: /ban 123456789")
+                return
+            
+            try:
+                user_id = int(message.command[1])
+                if ban_user(user_id):
+                    await message.reply_text(f"✅ User {user_id} has been banned.")
+                    logger.info(f"Admin {message.from_user.id} banned user {user_id}")
+                else:
+                    await message.reply_text(f"❌ Failed to ban user {user_id}")
+            except ValueError:
+                await message.reply_text("❌ Invalid user ID. Please provide a numeric user ID.")
+                
+        except Exception as e:
+            logger.error(f"Error in ban command: {e}")
+            await message.reply_text(f"❌ Error banning user: {e}")
+
+    @app.on_message(filters.command("unban") & filters.user(ADMIN_USER_ID))
+    async def unban_command(client, message):
+        """Unban a user (admin only)"""
+        try:
+            if len(message.command) < 2:
+                await message.reply_text("❌ Usage: /unban <user_id>\n\nExample: /unban 123456789")
+                return
+            
+            try:
+                user_id = int(message.command[1])
+                if unban_user(user_id):
+                    await message.reply_text(f"✅ User {user_id} has been unbanned.")
+                    logger.info(f"Admin {message.from_user.id} unbanned user {user_id}")
+                else:
+                    await message.reply_text(f"❌ Failed to unban user {user_id}")
+            except ValueError:
+                await message.reply_text("❌ Invalid user ID. Please provide a numeric user ID.")
+                
+        except Exception as e:
+            logger.error(f"Error in unban command: {e}")
+            await message.reply_text(f"❌ Error unbanning user: {e}")
+
+    @app.on_message(filters.command("broadcast") & filters.user(ADMIN_USER_ID))
+    async def broadcast_command(client, message):
+        """Broadcast a message to all users (admin only)"""
+        try:
+            if len(message.text.split(' ', 1)) < 2:
+                await message.reply_text("❌ Usage: /broadcast <message>\n\nExample: /broadcast Hello everyone!")
+                return
+            
+            broadcast_text = message.text.split(' ', 1)[1]
+            stats = load_stats()
+            total_users = len(stats.get('users', {}))
+            
+            if total_users == 0:
+                await message.reply_text("❌ No users found to broadcast to.")
+                return
+            
+            sent_count = 0
+            failed_count = 0
+            
+            status_message = await message.reply_text(f"📡 Broadcasting to {total_users} users...")
+            
+            for user_id in stats.get('users', {}):
+                try:
+                    await client.send_message(int(user_id), broadcast_text)
+                    sent_count += 1
+                except Exception as e:
+                    failed_count += 1
+                    logger.warning(f"Failed to send broadcast to user {user_id}: {e}")
+            
+            result_text = (
+                f"📡 **Broadcast Complete**\n\n"
+                f"✅ Successfully sent: {sent_count}\n"
+                f"❌ Failed: {failed_count}\n"
+                f"📊 Total users: {total_users}"
+            )
+            
+            await status_message.edit_text(result_text)
+            logger.info(f"Admin {message.from_user.id} broadcasted message to {sent_count} users")
+                
+        except Exception as e:
+            logger.error(f"Error in broadcast command: {e}")
+            await message.reply_text(f"❌ Error broadcasting message: {e}")
 
     logger.info("✅ All bot handlers have been set up successfully!")
 
