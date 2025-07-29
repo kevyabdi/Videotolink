@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: telegram-file-bot
+    env: python
+    buildCommand: pip install -r pyproject.toml
+    startCommand: python main.py
+    envVars:
+      - key: API_ID
+        sync: false
+      - key: API_HASH
+        sync: false
+      - key: BOT_TOKEN
+        sync: false
+    autoDeploy: false

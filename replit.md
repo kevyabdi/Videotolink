@@ -1,8 +1,8 @@
-# Telegram File Saver Bot - Premium Edition
+# Telegram File Saver Bot
 
 ## Overview
 
-This is a Telegram bot built with Python and Pyrogram that provides file storage and sharing capabilities with a comprehensive premium user system. The bot allows users to upload files and receive permanent shareable download links, with enhanced features for premium users including unlimited uploads and no waiting periods.
+This is a Telegram bot built with Python and Pyrogram that provides file storage and sharing capabilities with session recovery and premium features. The bot allows users to upload files and receive permanent sharing links, using Telegram's infrastructure for file hosting. The system includes robust session management, user statistics tracking, and admin controls.
 
 ## User Preferences
 
@@ -10,108 +10,115 @@ Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
-The application follows a monolithic architecture with file-based data persistence:
+The application follows a monolithic architecture with file-based data persistence and session recovery:
 
 - **Bot Framework**: Pyrogram (Python Telegram bot library)
+- **Session Management**: Custom SessionManager class with automatic recovery from authentication errors
 - **Data Storage**: JSON files for lightweight persistence
-- **Web Interface**: Flask web server for status monitoring
-- **Authentication**: Telegram-based user identification with premium status
-- **File Management**: Telegram's infrastructure for file hosting
-- **Premium System**: JSON-based premium user management with usage tracking
+- **Web Interface**: Flask web server for status monitoring and health checks
+- **Authentication**: Telegram-based user identification with admin privileges
+- **File Management**: Telegram's CDN infrastructure for file hosting and sharing
+- **Error Handling**: Comprehensive session error recovery with automatic cleanup
 
 ## Key Components
 
-### 1. Bot Client (`main.py`)
-- **Technology**: Pyrogram Client
-- **Purpose**: Handles all Telegram API interactions including message processing, file uploads, and premium features
-- **Configuration**: Environment-based credentials (API_ID, API_HASH, BOT_TOKEN)
-- **Features**: Supports all file types, inline keyboards, callback queries, and admin commands
+### 1. Session Management (`session_manager.py`)
+- **Purpose**: Handles Pyrogram session lifecycle with automatic recovery from authentication errors
+- **Key Features**: 
+  - Automatic detection and cleanup of corrupted session files
+  - Recovery from SESSION_REVOKED, AuthKeyUnregistered, and similar errors
+  - Retry mechanism with up to 3 attempts
+  - Clean session file removal and regeneration
+- **Problem Solved**: Eliminates manual intervention when Telegram sessions become corrupted
 
-### 2. Data Storage Layer
-- **files.json**: Stores file metadata and unique sharing identifiers
-- **stats.json**: Comprehensive statistics including user data, file counts, download tracking, and premium metrics
-- **banned_users.json**: List of banned users for moderation
-- **premium_users.json**: Premium user database with timestamps and status
+### 2. Bot Client (`main.py`)
+- **Technology**: Pyrogram Client with SessionManager integration
+- **Purpose**: Handles all Telegram API interactions including message processing and file uploads
+- **Configuration**: Environment-based credentials with fallback defaults
+- **Features**: File upload handling, inline keyboards, user interaction, admin controls
 
-### 3. Premium Management System
-- **Admin Controls**: Single admin user (ID: 1096693642) with full premium management privileges
-- **Usage Limits**: Free users limited to 5 uploads per day, premium users get unlimited access
-- **Cooldown System**: 4-hour waiting period for free users after reaching daily limit
-- **Plan Tracking**: Real-time monitoring of user plan status and daily usage
+### 3. Data Storage Layer
+- **files.json**: Stores file metadata with unique identifiers for sharing
+- **stats.json**: User statistics including upload counts, download tracking, and activity timestamps
+- **banned_users.json**: User moderation list (currently empty array)
+- **premium_users.json**: Premium user database (currently empty object)
 
 ### 4. Web Status Interface (`keep_alive.py`)
-- **Technology**: Flask web server
-- **Purpose**: Provides HTTP endpoints for bot status monitoring and feature documentation
+- **Technology**: Flask web server with suppressed logging
+- **Purpose**: Provides HTTP endpoints for bot health monitoring
 - **Endpoints**: 
-  - `/` - Basic status page
-  - `/status` - JSON status with premium system info
-  - `/features` - Detailed feature breakdown for premium vs free users
+  - `/` - Basic status confirmation
+  - `/status` - Detailed JSON status with session recovery info
+  - `/features` - Feature documentation including session management capabilities
 
-### 5. User Management
-- **Registration**: Automatic user registration on first interaction
-- **Statistics Tracking**: Comprehensive user analytics with premium status
-- **Ban System**: Admin can ban/unban users while preserving premium status
-- **Broadcast System**: Admin can send messages to all registered users
+### 5. Session Cleanup Utility (`cleanup_sessions.py`)
+- **Purpose**: Standalone script for manual session cleanup
+- **Features**: Removes all Pyrogram session files to force re-authentication
+- **Use Case**: Emergency recovery tool when automatic session recovery fails
 
 ## Data Flow
 
 ### File Upload Process
-1. User sends file to bot
-2. System checks user's premium status and daily usage limits
-3. If within limits, file is processed and unique ID generated
-4. File metadata stored in files.json with permanent Telegram file_id
-5. User receives shareable download link
-6. Usage statistics updated
+1. User sends file to bot via Telegram
+2. Bot receives file and generates unique identifier
+3. File metadata stored in files.json with timestamp
+4. User statistics updated in stats.json
+5. Permanent sharing link generated using Telegram's file infrastructure
+6. User receives shareable download link
 
-### Premium Management Flow
-1. Admin uses `/premium <user_id>` command
-2. User ID added to premium_users.json with timestamp
-3. User gains unlimited upload access and no cooldown periods
-4. Premium status reflected in all user interactions
+### Session Recovery Process
+1. Bot attempts to connect using existing session
+2. If authentication error occurs, SessionManager detects the issue
+3. Corrupted session files are automatically removed
+4. New session is created and authentication is re-established
+5. Bot continues operation without manual intervention
 
-### Download Process
-1. User accesses shared link with unique file ID
-2. Bot retrieves file metadata from files.json
-3. File served directly from Telegram's servers
-4. Download count incremented in statistics
+### User Interaction Flow
+1. User sends /start command or file
+2. Bot checks user ban status and updates statistics
+3. Appropriate response sent with inline keyboard buttons
+4. Join community and contact admin buttons provided for engagement
 
 ## External Dependencies
 
-### Required Packages
-- **Pyrogram**: Telegram bot framework for Python
-- **Flask**: Lightweight web framework for status interface
-- **Threading**: For running Flask server alongside bot
+### Core Dependencies
+- **Pyrogram**: Telegram MTProto API client for bot functionality
+- **Flask**: Lightweight web framework for status monitoring
+- **Python Standard Library**: json, os, logging, datetime, asyncio modules
 
-### Telegram Integration
-- **Telegram Bot API**: Core bot functionality
-- **File Storage**: Uses Telegram's infrastructure for permanent file hosting
-- **Inline Keyboards**: For JOIN DAAWO buttons on video messages
+### Telegram API Integration
+- **API Credentials**: API_ID and API_HASH for Telegram application
+- **Bot Token**: Official bot token from BotFather
+- **File Storage**: Uses Telegram's CDN for permanent file hosting
 
 ### Environment Variables
-- `API_ID`: Telegram API ID for bot authentication
-- `API_HASH`: Telegram API hash for bot authentication
-- `BOT_TOKEN`: Bot token from @BotFather
+- `API_ID`: Telegram API application ID (default: 26176218)
+- `API_HASH`: Telegram API hash (default provided)
+- `BOT_TOKEN`: Telegram bot token (default provided)
 
 ## Deployment Strategy
 
-### File-Based Persistence
-- **Rationale**: Simple JSON files chosen for lightweight deployment without database dependencies
-- **Data Files**: All user data, file metadata, and premium status stored in JSON format
-- **Backup Strategy**: JSON files can be easily backed up and restored
+### Local Development
+- Files stored locally in JSON format for simple development
+- Session files managed automatically by SessionManager
+- Flask server runs on default port for status monitoring
 
-### Process Management
-- **Multi-Threading**: Flask web server runs in separate thread from main bot
-- **Error Handling**: Comprehensive logging and error recovery
-- **Monitoring**: Web interface provides real-time status monitoring
+### Production Considerations
+- Environment variables should be properly configured
+- Session recovery ensures minimal downtime during authentication issues
+- JSON file persistence suitable for small to medium scale usage
+- Flask keep-alive server maintains bot availability status
 
-### Premium Features Integration
-- **JOIN DAAWO Button**: Automatically added to video messages linking to https://t.me/daawotv
-- **Admin Contact**: @viizet contact integrated for premium upgrades
-- **Usage Limits**: Daily reset system with persistent tracking across restarts
+### Error Recovery
+- Automatic session cleanup on authentication errors
+- Manual cleanup utility available for emergency situations
+- Comprehensive logging for debugging session issues
+- Retry mechanism prevents permanent failures from temporary issues
 
-### Scalability Considerations
-- **File Storage**: Leverages Telegram's CDN for file distribution
-- **User Management**: JSON-based storage suitable for moderate user bases
-- **Premium System**: Designed for easy migration to database if needed
+### Scaling Limitations
+- JSON file storage not suitable for high-volume usage
+- Single-instance deployment (no horizontal scaling)
+- File storage dependent on Telegram's infrastructure
+- Session management tied to single bot instance
 
-The architecture prioritizes simplicity and reliability while providing comprehensive premium features. The file-based approach allows for easy deployment and maintenance while the premium system adds monetization capabilities through usage restrictions and upgrade paths.
+The architecture prioritizes reliability and automatic recovery over complex scaling, making it ideal for personal or small community file sharing bots with robust session management.
