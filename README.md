@@ -1,6 +1,20 @@
-# Telegram File Saver Bot
+# Telegram File Saver Bot - Premium Edition
 
-A powerful Telegram bot that allows users to upload files and receive permanent shareable download links. Built with Python and Pyrogram, featuring comprehensive admin controls and user management.
+A powerful Telegram bot with premium features that allows users to upload files and receive permanent shareable download links. Built with Python and Pyrogram, featuring comprehensive admin controls, premium user management, and usage limits.
+
+## 🌟 Premium Features
+
+### Premium System
+- **💎 Premium Users**: Unlimited uploads, no daily limits, no waiting periods
+- **🆓 Free Users**: 5 uploads per day with 4-hour cooldown after limit
+- **📺 JOIN DAAWO Button**: Automatically added to all video messages linking to https://t.me/daawotv
+- **📞 Admin Contact**: @viizet for premium upgrades and support
+
+### Enhanced Commands
+- `/premium <user_id>` - Upgrade user to premium (admin only)
+- `/unpremium <user_id>` - Remove premium status (admin only)
+- `/upgrade` - Get premium upgrade information
+- `/myplan` - Check current plan status and usage
 
 ## Features
 
@@ -10,21 +24,24 @@ A powerful Telegram bot that allows users to upload files and receive permanent 
 - **Original Caption Preservation**: Videos retain their original captions when downloaded
 - **Unlimited Storage**: Uses Telegram's infrastructure for file hosting
 - **Permanent Links**: Generated links work indefinitely
+- **Smart Usage Limits**: Free users get 5 uploads/day, premium users get unlimited
+
+### Premium Features
+
+- **Usage Tracking**: Daily upload limits with automatic reset
+- **Cooldown System**: 4-hour waiting period for free users after limit
+- **Premium Management**: Complete admin control over premium users
+- **JOIN DAAWO Integration**: Automatic button on video messages
+- **Plan Status**: Users can check their current plan and usage
 
 ### Admin Features
 
-- **User Statistics**: Comprehensive analytics on bot usage
-- **User Management**: View detailed user lists with activity data
-- **Ban/Unban System**: Complete user access control
+- **User Statistics**: Comprehensive analytics including premium user counts
+- **Premium Management**: Upgrade/downgrade users with simple commands
+- **User Management**: View detailed user lists with premium status
+- **Ban/Unban System**: Complete user access control with premium preservation
 - **Broadcast System**: Send messages to all registered users
-- **Real-time Monitoring**: Track bot performance and user activity
-
-### Security & Management
-
-- **Admin-only Commands**: Secure access to management features
-- **Ban Protection**: Comprehensive blocking of banned users
-- **Activity Tracking**: Detailed logs of user interactions
-- **Persistent Storage**: JSON-based data storage
+- **Real-time Monitoring**: Track bot performance and premium user activity
 
 ## Installation
 
@@ -46,12 +63,12 @@ cd telegram-file-saver-bot
 2. **Install dependencies**
 
 ```bash
-pip install -r requirements.txt
+pip install pyrogram tgcrypto flask
 ```
 
 3. **Configure environment variables**
 
-Create a `.env` file or set environment variables:
+Set environment variables:
 
 ```bash
 export API_ID="your_api_id"
@@ -94,125 +111,64 @@ python main.py
 
 1. **Upload Files**: Send any file to the bot
 2. **Get Share Link**: Receive a permanent download link
-3. **Share**: Anyone with the link can download the file
+3. **Check Plan**: Use `/myplan` to see your current status
+4. **Upgrade**: Use `/upgrade` to get premium information
 
 ### For Admins
 
-- `/stats` - View bot statistics
-- `/users` - View user list and activity
+- `/stats` - View bot statistics with premium analytics
+- `/users` - View user list and activity with premium status
+- `/premium <user_id>` - Upgrade user to premium
+- `/unpremium <user_id>` - Remove premium status
 - `/ban <user_id>` - Ban a user from using the bot
 - `/unban <user_id>` - Remove ban from a user
 - `/banned` - View list of banned users
 - `/broadcast <message>` - Send message to all registered users
 
-## Deployment
-
-### Replit
-
-1. Import the repository to Replit
-2. Set environment variables in Replit Secrets
-3. Run the bot using the built-in workflow
-
-### Heroku
-
-1. Create a new Heroku app
-2. Set environment variables in Heroku Config Vars
-3. Deploy using Git or GitHub integration
-
-### VPS/Local Server
-
-1. Clone the repository
-2. Install dependencies
-3. Set environment variables
-4. Run with `python main.py`
-
 ## File Structure
 
 ```
 telegram-file-saver-bot/
-├── main.py              # Main bot application
-├── keep_alive.py        # Web server for hosting platforms (optional)
-├── requirements.txt     # Python dependencies
+├── main.py              # Main bot application with premium features
+├── keep_alive.py        # Web server for hosting platforms
 ├── files.json          # File mappings database (auto-generated)
-├── stats.json          # User statistics (auto-generated)
+├── stats.json          # User statistics with premium tracking (auto-generated)
 ├── banned_users.json   # Banned users list (auto-generated)
-├── README.md           # This file
+├── premium_users.json  # Premium users database (auto-generated)
 ├── replit.md           # Project documentation
-└── .gitignore          # Git ignore file
+└── pyproject.toml      # Python dependencies
 ```
 
-## Technical Details
+## Premium System Details
 
-### Architecture
+### Free Users
+- 5 file uploads per day
+- 4-hour cooldown after hitting daily limit
+- All basic features included
+- Permanent download links
 
-- **Framework**: Pyrogram (Telegram MTProto API)
-- **Storage**: JSON files for data persistence
-- **Web Server**: Flask for keep-alive functionality (optional)
-- **Async**: Full async/await support for better performance
+### Premium Users
+- Unlimited file uploads
+- No daily limits or cooldowns
+- Priority support
+- All features included
 
-### Database Schema
+### Admin Management
+- Instant premium upgrades/downgrades
+- Real-time usage monitoring
+- Premium user analytics
+- Complete user management
 
-- **files.json**: Maps unique file IDs to Telegram file IDs
-- **stats.json**: Stores user statistics and activity data
-- **banned_users.json**: List of banned user IDs
+## Contact & Support
 
-### Security Features
-
-- Environment variable configuration
-- Admin-only command access
-- Comprehensive user ban system
-- Input validation and error handling
-
-## Broadcast Feature
-
-The bot includes a powerful broadcast system for administrators:
-
-### Features
-- Send messages to all registered users
-- Real-time progress tracking
-- Rate limiting (30 messages/second)
-- Automatic skip of banned users
-- Detailed delivery statistics
-- Error handling for blocked users
-
-### Usage
-```
-/broadcast Your message here
-```
-
-The bot will automatically:
-1. Load all users from the database
-2. Send the message to each user (except banned users)
-3. Track delivery statistics
-4. Provide real-time updates every 50 messages
-5. Show final completion report
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+- **Admin Contact**: @viizet
+- **JOIN DAAWO**: https://t.me/daawotv
+- Create issues for bugs or feature requests
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Support
-
-For support and questions:
-
-- Create an issue on GitHub
-- Check the documentation
-- Review the code comments
-
-## Acknowledgments
-
-- Built with [Pyrogram](https://github.com/pyrogram/pyrogram)
-- Inspired by file sharing bots on Telegram
-- Thanks to the Telegram Bot API community
+This project is licensed under the MIT License.
 
 ---
 
-**Note**: Make sure to keep your bot token and API credentials secure. Never commit them to version control.
+**Note**: Keep your bot token and API credentials secure. Never commit them to version control.
