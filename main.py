@@ -363,7 +363,7 @@ def setup_handlers():
             # Create inline keyboard with only Join DAAWO button
             keyboard = InlineKeyboardMarkup([
                 [
-                    InlineKeyboardButton("📺 Join DAAWO ↗", url="https://t.me/daawotv")
+                    InlineKeyboardButton("« JOIN DAAWO » ↗", url="https://t.me/daawotv")
                 ]
             ])
 
