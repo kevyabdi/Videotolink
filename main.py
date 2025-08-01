@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 # Get credentials from environment variables with proper fallbacks
 API_ID = int(os.getenv("API_ID", "26176218"))
 API_HASH = os.getenv("API_HASH", "4a50bc8acb0169930f5914eb88091736")
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8452579938:AAEQiVJmSyHqu2THmJ3qv9CX3K_yzt6oeQA")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8271624089:AAGfXuu_V_HuQdzVB7IOUNyYh1xY8dtJ29g")
 
 # Admin user ID
 ADMIN_USER_ID = 1096693642
@@ -346,9 +346,9 @@ def setup_handlers():
             if len(message.command) > 1:
                 unique_id = message.command[1].strip()
                 if unique_id:
-                    # Handle file sharing request
+                    # Handle file sharing request ONLY - no welcome message
                     await handle_file_request(client, message, unique_id)
-                    return
+                    return  # Exit completely after handling file request
 
             # No file ID parameter, show welcome message
             welcome_text = (
@@ -416,8 +416,8 @@ def setup_handlers():
             # Create inline keyboard with DM Owner and Join DAAWO buttons
             keyboard = InlineKeyboardMarkup([
                 [
-                    InlineKeyboardButton("« DM OWNER » ", url="https://t.me/viizet"),
-                    InlineKeyboardButton("📺 « JOIN DAAWO »", url="https://t.me/daawotv")
+                    InlineKeyboardButton("💬 DM Owner", url="https://t.me/viizet"),
+                    InlineKeyboardButton("📺 Join DAAWO ↗", url="https://t.me/daawotv")
                 ]
             ])
 
@@ -561,7 +561,7 @@ def setup_handlers():
             # Create JOIN & WATCH button to attach with file
             join_keyboard = InlineKeyboardMarkup([
                 [
-                    InlineKeyboardButton("« JOIN DAAWO » ", url="https://t.me/daawotv")
+                    InlineKeyboardButton("🎬 JOIN & WATCH - LINK: t.me/daawotv", url="https://t.me/daawotv")
                 ]
             ])
 

@@ -1,36 +1,37 @@
 {
   "total_users": 4,
-  "total_files": 8,
+  "total_files": 18,
   "files_by_type": {
-    "document": 0,
-    "video": 2,
+    "document": 1,
+    "video": 8,
     "audio": 0,
-    "photo": 6
+    "photo": 9
   },
-  "downloads": 6,
+  "downloads": 13,
   "users": {
     "1096693642": {
       "username": "viizet",
+      "files_uploaded": 12,
+      "downloads": 9,
+      "first_seen": "2025-07-29T10:48:15.287412",
+      "last_seen": "2025-08-01T21:35:15.575626",
+      "daily_uploads": {
+        "2025-07-29": 2,
+        "2025-08-01": 10
+      },
+      "last_upload_time": "2025-08-01T21:33:08.878439"
+    },
+    "5616403687": {
+      "username": "shineemo",
       "files_uploaded": 4,
       "downloads": 4,
-      "first_seen": "2025-07-29T10:48:15.287412",
-      "last_seen": "2025-08-01T18:54:21.648884",
+      "first_seen": "2025-07-29T10:52:55.401715",
+      "last_seen": "2025-08-01T21:33:48.275372",
       "daily_uploads": {
         "2025-07-29": 2,
         "2025-08-01": 2
       },
-      "last_upload_time": "2025-08-01T18:53:53.403636"
-    },
-    "5616403687": {
-      "username": "shineemo",
-      "files_uploaded": 2,
-      "downloads": 2,
-      "first_seen": "2025-07-29T10:52:55.401715",
-      "last_seen": "2025-08-01T18:52:45.990312",
-      "daily_uploads": {
-        "2025-07-29": 2
-      },
-      "last_upload_time": "2025-07-29T10:53:43.116900"
+      "last_upload_time": "2025-08-01T21:33:41.680538"
     },
     "7109149307": {
       "username": "Abdirahman",
