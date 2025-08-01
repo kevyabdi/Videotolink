@@ -558,30 +558,41 @@ def setup_handlers():
             # Send the file back to user with original caption only
             caption_text = original_caption if original_caption else None
 
-            # Send file based on type - clean delivery without extra buttons for broadcasts
+            # Create JOIN & WATCH button to attach with file
+            join_keyboard = InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton("🎬 JOIN & WATCH - LINK: t.me/daawotv", url="https://t.me/daawotv")
+                ]
+            ])
+
+            # Send file with original caption AND the JOIN & WATCH button attached
             if file_type == "document":
                 await client.send_document(
                     chat_id=message.chat.id,
                     document=file_id,
-                    caption=caption_text
+                    caption=caption_text,
+                    reply_markup=join_keyboard
                 )
             elif file_type == "video":
                 await client.send_video(
                     chat_id=message.chat.id,
                     video=file_id,
-                    caption=caption_text
+                    caption=caption_text,
+                    reply_markup=join_keyboard
                 )
             elif file_type == "audio":
                 await client.send_audio(
                     chat_id=message.chat.id,
                     audio=file_id,
-                    caption=caption_text
+                    caption=caption_text,
+                    reply_markup=join_keyboard
                 )
             elif file_type == "photo":
                 await client.send_photo(
                     chat_id=message.chat.id,
                     photo=file_id,
-                    caption=caption_text
+                    caption=caption_text,
+                    reply_markup=join_keyboard
                 )
 
             logger.info(f"User {message.from_user.id} downloaded file {unique_id}")
@@ -783,6 +794,14 @@ def run_bot():
         
         # Setup handlers
         setup_handlers()
+        
+        # Get and log bot information
+        try:
+            bot_info = app.get_me()
+            logger.info(f"🤖 Bot Username: @{bot_info.username}")
+            logger.info(f"📱 Bot Name: {bot_info.first_name}")
+        except Exception as e:
+            logger.warning(f"Could not retrieve bot info: {e}")
         
         # Bot is already running from SessionManager, just keep it alive
         logger.info("🚀 Telegram bot is running and ready!")
