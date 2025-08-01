@@ -416,8 +416,8 @@ def setup_handlers():
             # Create inline keyboard with DM Owner and Join DAAWO buttons
             keyboard = InlineKeyboardMarkup([
                 [
-                    InlineKeyboardButton("💬 DM Owner", url="https://t.me/viizet"),
-                    InlineKeyboardButton("📺 Join DAAWO ↗", url="https://t.me/daawotv")
+                    InlineKeyboardButton("« DM OWNER » ", url="https://t.me/viizet"),
+                    InlineKeyboardButton("📺 « JOIN DAAWO »", url="https://t.me/daawotv")
                 ]
             ])
 
