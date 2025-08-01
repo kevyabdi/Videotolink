@@ -20,8 +20,8 @@ logger = logging.getLogger(__name__)
 
 # Get credentials from environment variables with proper fallbacks
 API_ID = int(os.getenv("API_ID", "26176218"))
-API_HASH = os.getenv("API_HASH", "a50bc8acb0169930f5914eb88091736")
-BOT_TOKEN = os.getenv("BOT_TOKEN", "845257993:AAEQiVJmSyHqu2THmJ3qv9CX3K_yzt6oeQA")
+API_HASH = os.getenv("API_HASH", "4a50bc8acb0169930f5914eb88091736")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8452579938:AAEQiVJmSyHqu2THmJ3qv9CX3K_yzt6oeQA")
 
 # Admin user ID
 ADMIN_USER_ID = 1096693642
@@ -558,39 +558,30 @@ def setup_handlers():
             # Send the file back to user with original caption only
             caption_text = original_caption if original_caption else None
 
-            # Create inline keyboard with only Join DAAWO button for shared files
-            keyboard = InlineKeyboardMarkup([
-                [InlineKeyboardButton("📺 Join DAAWO ↗", url="https://t.me/daawotv")]
-            ])
-
-            # Send file based on type
+            # Send file based on type - clean delivery without extra buttons for broadcasts
             if file_type == "document":
                 await client.send_document(
                     chat_id=message.chat.id,
                     document=file_id,
-                    caption=caption_text,
-                    reply_markup=keyboard
+                    caption=caption_text
                 )
             elif file_type == "video":
                 await client.send_video(
                     chat_id=message.chat.id,
                     video=file_id,
-                    caption=caption_text,
-                    reply_markup=keyboard
+                    caption=caption_text
                 )
             elif file_type == "audio":
                 await client.send_audio(
                     chat_id=message.chat.id,
                     audio=file_id,
-                    caption=caption_text,
-                    reply_markup=keyboard
+                    caption=caption_text
                 )
             elif file_type == "photo":
                 await client.send_photo(
                     chat_id=message.chat.id,
                     photo=file_id,
-                    caption=caption_text,
-                    reply_markup=keyboard
+                    caption=caption_text
                 )
 
             logger.info(f"User {message.from_user.id} downloaded file {unique_id}")
@@ -681,13 +672,8 @@ def setup_handlers():
 
     @app.on_message(filters.command("broadcast") & filters.user(ADMIN_USER_ID))
     async def broadcast_command(client, message):
-        """Broadcast a message to all users (admin only)"""
+        """Broadcast a message to all users (admin only) - supports text, images, videos, audio, documents"""
         try:
-            if len(message.text.split(' ', 1)) < 2:
-                await message.reply_text("❌ Usage: /broadcast <message>\n\nExample: /broadcast Hello everyone!")
-                return
-            
-            broadcast_text = message.text.split(' ', 1)[1]
             stats = load_stats()
             total_users = len(stats.get('users', {}))
             
@@ -695,32 +681,95 @@ def setup_handlers():
                 await message.reply_text("❌ No users found to broadcast to.")
                 return
             
+            # Check if this is a reply to a media message
+            if message.reply_to_message:
+                # Broadcasting replied media - send exactly as original
+                replied_msg = message.reply_to_message
+                broadcast_content = None
+                broadcast_type = "text"
+                
+                # Determine the type of content to broadcast
+                if replied_msg.photo:
+                    broadcast_content = replied_msg.photo
+                    broadcast_type = "photo"
+                elif replied_msg.video:
+                    broadcast_content = replied_msg.video
+                    broadcast_type = "video"
+                elif replied_msg.audio:
+                    broadcast_content = replied_msg.audio
+                    broadcast_type = "audio"
+                elif replied_msg.document:
+                    broadcast_content = replied_msg.document
+                    broadcast_type = "document"
+                elif replied_msg.text:
+                    broadcast_content = replied_msg.text
+                    broadcast_type = "text"
+                else:
+                    await message.reply_text("❌ Unsupported media type for broadcasting.")
+                    return
+                
+                # Get original caption exactly as it is
+                caption = replied_msg.caption
+                
+            else:
+                # Broadcasting text message from command
+                if len(message.text.split(' ', 1)) < 2:
+                    await message.reply_text(
+                        "❌ Usage: /broadcast <message>\n\n"
+                        "**Examples:**\n"
+                        "• /broadcast Hello everyone!\n"
+                        "• Reply to any media with /broadcast to send that media to all users"
+                    )
+                    return
+                
+                broadcast_content = message.text.split(' ', 1)[1]
+                broadcast_type = "text"
+                caption = None
+            
             sent_count = 0
             failed_count = 0
             
-            status_message = await message.reply_text(f"📡 Broadcasting to {total_users} users...")
+            status_message = await message.reply_text(f"📡 Broadcasting {broadcast_type} to {total_users} users...")
             
             for user_id in stats.get('users', {}):
                 try:
-                    await client.send_message(int(user_id), broadcast_text)
+                    user_id_int = int(user_id)
+                    
+                    if broadcast_type == "text":
+                        await client.send_message(user_id_int, broadcast_content)
+                    elif broadcast_type == "photo":
+                        # Send photo with original caption only - no extra text
+                        await client.send_photo(user_id_int, broadcast_content.file_id, caption=caption)
+                    elif broadcast_type == "video":
+                        # Send video with original caption only - no extra text
+                        await client.send_video(user_id_int, broadcast_content.file_id, caption=caption)
+                    elif broadcast_type == "audio":
+                        # Send audio with original caption only - no extra text
+                        await client.send_audio(user_id_int, broadcast_content.file_id, caption=caption)
+                    elif broadcast_type == "document":
+                        # Send document with original caption only - no extra text
+                        await client.send_document(user_id_int, broadcast_content.file_id, caption=caption)
+                    
                     sent_count += 1
+                    
                 except Exception as e:
                     failed_count += 1
                     logger.warning(f"Failed to send broadcast to user {user_id}: {e}")
             
             result_text = (
                 f"📡 **Broadcast Complete**\n\n"
-                f"✅ Successfully sent: {sent_count}\n"
-                f"❌ Failed: {failed_count}\n"
-                f"📊 Total users: {total_users}"
+                f"📂 **Type:** {broadcast_type.title()}\n"
+                f"✅ **Successfully sent:** {sent_count}\n"
+                f"❌ **Failed:** {failed_count}\n"
+                f"📊 **Total users:** {total_users}"
             )
             
             await status_message.edit_text(result_text)
-            logger.info(f"Admin {message.from_user.id} broadcasted message to {sent_count} users")
+            logger.info(f"Admin {message.from_user.id} broadcasted {broadcast_type} to {sent_count} users")
                 
         except Exception as e:
             logger.error(f"Error in broadcast command: {e}")
-            await message.reply_text(f"❌ Error broadcasting message: {e}")
+            await message.reply_text(f"❌ Error broadcasting content: {e}")
 
     logger.info("✅ All bot handlers have been set up successfully!")
 

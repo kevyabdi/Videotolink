@@ -1,35 +1,56 @@
 {
-  "total_users": 2,
-  "total_files": 4,
+  "total_users": 4,
+  "total_files": 8,
   "files_by_type": {
     "document": 0,
-    "video": 1,
+    "video": 2,
     "audio": 0,
-    "photo": 3
+    "photo": 6
   },
-  "downloads": 4,
+  "downloads": 6,
   "users": {
     "1096693642": {
       "username": "viizet",
-      "files_uploaded": 2,
-      "downloads": 2,
+      "files_uploaded": 4,
+      "downloads": 4,
       "first_seen": "2025-07-29T10:48:15.287412",
-      "last_seen": "2025-07-29T11:05:18.848714",
+      "last_seen": "2025-08-01T18:54:21.648884",
       "daily_uploads": {
-        "2025-07-29": 2
+        "2025-07-29": 2,
+        "2025-08-01": 2
       },
-      "last_upload_time": "2025-07-29T11:05:00.180069"
+      "last_upload_time": "2025-08-01T18:53:53.403636"
     },
     "5616403687": {
       "username": "shineemo",
       "files_uploaded": 2,
       "downloads": 2,
       "first_seen": "2025-07-29T10:52:55.401715",
-      "last_seen": "2025-07-29T10:53:57.083878",
+      "last_seen": "2025-08-01T18:52:45.990312",
       "daily_uploads": {
         "2025-07-29": 2
       },
       "last_upload_time": "2025-07-29T10:53:43.116900"
+    },
+    "7109149307": {
+      "username": "Abdirahman",
+      "files_uploaded": 0,
+      "downloads": 0,
+      "first_seen": "2025-08-01T18:42:19.635215",
+      "last_seen": "2025-08-01T18:54:26.505664",
+      "daily_uploads": {},
+      "last_upload_time": null
+    },
+    "8452579938": {
+      "username": "daawotvbot",
+      "files_uploaded": 2,
+      "downloads": 0,
+      "first_seen": "2025-08-01T18:43:04.267444",
+      "last_seen": "2025-08-01T18:43:17.997310",
+      "daily_uploads": {
+        "2025-08-01": 2
+      },
+      "last_upload_time": "2025-08-01T18:43:17.997316"
     }
   }
 }
