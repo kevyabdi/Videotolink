@@ -19,9 +19,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Get credentials from environment variables with proper fallbacks
-API_ID = int(os.getenv("API_ID", "6176218"))
-API_HASH = os.getenv("API_HASH", "a50bc8acb0169930f5914eb88091736")
-BOT_TOKEN = os.getenv("BOT_TOKEN", "452579938:AAFLC_n7bDkxc6vzioxwcOPRDtM6_mWEChk")
+API_ID = int(os.getenv("API_ID", "26176218"))
+API_HASH = os.getenv("API_HASH", "4a50bc8acb0169930f5914eb88091736")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8452579938:AAFLC_n7bDkxc6vzioxwcOPRDtM6_mWEChk")
 
 # Admin user ID
 ADMIN_USER_ID = 1096693642
