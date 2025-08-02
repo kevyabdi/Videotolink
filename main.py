@@ -561,7 +561,7 @@ def setup_handlers():
             # Create JOIN & WATCH button to attach with file
             join_keyboard = InlineKeyboardMarkup([
                 [
-                    InlineKeyboardButton("🎬 JOIN & WATCH - LINK: t.me/daawotv", url="https://t.me/daawotv")
+                    InlineKeyboardButton("« DAAWO »", url="https://t.me/daawotv")
                 ]
             ])
 
