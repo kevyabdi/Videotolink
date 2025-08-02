@@ -1,0 +1,229 @@
+{
+  "users": {
+    "6992068076": {
+      "first_seen": "2025-07-29T13:39:53.717311",
+      "message_count": 12,
+      "last_activity": "2025-07-29T14:25:35.228809",
+      "id": 6992068076,
+      "first_name": "Kavy",
+      "last_name": "",
+      "username": "kavyabdi",
+      "language_code": "en",
+      "is_bot": false,
+      "is_premium": false,
+      "last_seen": "2025-07-29T14:25:35.228799",
+      "welcomed": true
+    },
+    "5616403687": {
+      "first_seen": "2025-07-29T14:00:12.217045",
+      "message_count": 10,
+      "last_activity": "2025-07-29T14:15:50.024893",
+      "welcomed": true,
+      "id": 5616403687,
+      "first_name": "King",
+      "last_name": "",
+      "username": "shineemo",
+      "language_code": "en",
+      "is_bot": false,
+      "is_premium": false,
+      "last_seen": "2025-07-29T14:15:50.024883"
+    },
+    "6904915229": {
+      "first_seen": "2025-07-29T14:03:35.631856",
+      "message_count": 3,
+      "last_activity": "2025-07-29T14:22:51.539477",
+      "welcomed": true,
+      "id": 6904915229,
+      "first_name": "YASIN BOOMBALE",
+      "last_name": "",
+      "username": "YASINBOOMBALE",
+      "language_code": "en",
+      "is_bot": false,
+      "is_premium": false,
+      "last_seen": "2025-07-29T14:22:51.539468"
+    }
+  },
+  "blocked_users": [],
+  "stats": {
+    "total_users": 3,
+    "total_messages": 25,
+    "messages_today": 25,
+    "last_reset": "2025-07-29T13:39:16.558208",
+    "bot_started": "2025-07-29T13:39:16.558234"
+  },
+  "bot_settings": {
+    "mode": "private",
+    "target_group_id": null,
+    "welcome_message": null
+  },
+  "message_history": [
+    {
+      "user_id": 6992068076,
+      "message_type": "text",
+      "text": "haye sidetahay calada",
+      "timestamp": "2025-07-29T13:39:53.717341"
+    },
+    {
+      "user_id": 6992068076,
+      "message_type": "text",
+      "text": "oky wayahay adiga sideetahay",
+      "timestamp": "2025-07-29T13:40:09.976768"
+    },
+    {
+      "user_id": 6992068076,
+      "message_type": "text",
+      "text": "Sidetahay xaladaada",
+      "timestamp": "2025-07-29T13:52:20.968525"
+    },
+    {
+      "user_id": 6992068076,
+      "message_type": "text",
+      "text": "Haye Sxb",
+      "timestamp": "2025-07-29T13:52:34.662989"
+    },
+    {
+      "user_id": 6992068076,
+      "message_type": "text",
+      "text": "Maiiso Jawabe oro",
+      "timestamp": "2025-07-29T13:52:44.443765"
+    },
+    {
+      "user_id": 6992068076,
+      "message_type": "text",
+      "text": "Hade iso jawabe. iisheg",
+      "timestamp": "2025-07-29T13:52:51.473772"
+    },
+    {
+      "user_id": 6992068076,
+      "message_type": "text",
+      "text": "runtaa miya sxb",
+      "timestamp": "2025-07-29T13:52:55.899449"
+    },
+    {
+      "user_id": 6992068076,
+      "message_type": "photo",
+      "text": null,
+      "timestamp": "2025-07-29T13:53:01.663427"
+    },
+    {
+      "user_id": 6992068076,
+      "message_type": "voice",
+      "text": null,
+      "timestamp": "2025-07-29T13:53:05.778948"
+    },
+    {
+      "user_id": 5616403687,
+      "message_type": "text",
+      "text": "sxb Waxa rabay ina kuwaydiyo",
+      "timestamp": "2025-07-29T14:00:21.879539"
+    },
+    {
+      "user_id": 5616403687,
+      "message_type": "text",
+      "text": "Maku waydin kara iisheg sxb",
+      "timestamp": "2025-07-29T14:00:29.086485"
+    },
+    {
+      "user_id": 5616403687,
+      "message_type": "text",
+      "text": "haa mise may",
+      "timestamp": "2025-07-29T14:00:31.612641"
+    },
+    {
+      "user_id": 5616403687,
+      "message_type": "text",
+      "text": "gorma aya imane sxb",
+      "timestamp": "2025-07-29T14:03:17.521589"
+    },
+    {
+      "user_id": 5616403687,
+      "message_type": "text",
+      "text": "iisoo sheg marka imaneso",
+      "timestamp": "2025-07-29T14:03:23.734989"
+    },
+    {
+      "user_id": 6904915229,
+      "message_type": "photo",
+      "text": null,
+      "timestamp": "2025-07-29T14:03:53.797018"
+    },
+    {
+      "user_id": 6904915229,
+      "message_type": "text",
+      "text": "iso jawb",
+      "timestamp": "2025-07-29T14:03:58.218945"
+    },
+    {
+      "user_id": 5616403687,
+      "message_type": "text",
+      "text": "Setahay sxb",
+      "timestamp": "2025-07-29T14:10:26.325969"
+    },
+    {
+      "user_id": 5616403687,
+      "message_type": "text",
+      "text": "oday wakuso qawana",
+      "timestamp": "2025-07-29T14:15:31.078528"
+    },
+    {
+      "user_id": 5616403687,
+      "message_type": "text",
+      "text": "lkn sug",
+      "timestamp": "2025-07-29T14:15:48.291569"
+    },
+    {
+      "user_id": 5616403687,
+      "message_type": "text",
+      "text": "bdbd",
+      "timestamp": "2025-07-29T14:15:49.188016"
+    },
+    {
+      "user_id": 5616403687,
+      "message_type": "text",
+      "text": "hhd",
+      "timestamp": "2025-07-29T14:15:50.024928"
+    },
+    {
+      "user_id": 6992068076,
+      "message_type": "text",
+      "text": "ismaqal\nmajira",
+      "timestamp": "2025-07-29T14:19:34.472988"
+    },
+    {
+      "user_id": 6992068076,
+      "message_type": "text",
+      "text": "gsvs",
+      "timestamp": "2025-07-29T14:19:36.575831"
+    },
+    {
+      "user_id": 6904915229,
+      "message_type": "text",
+      "text": "hdhdndj",
+      "timestamp": "2025-07-29T14:22:51.539505"
+    },
+    {
+      "user_id": 6992068076,
+      "message_type": "text",
+      "text": "oky matahay",
+      "timestamp": "2025-07-29T14:25:35.228843"
+    }
+  ],
+  "message_mapping": {
+    "5616403687_186": 188,
+    "5616403687_189": 190,
+    "5616403687_191": 192,
+    "5616403687_196": 197,
+    "5616403687_198": 199,
+    "6904915229_202": 204,
+    "6904915229_205": 206,
+    "5616403687_219": 220,
+    "5616403687_221": 222,
+    "5616403687_224": 225,
+    "5616403687_227": 228,
+    "5616403687_230": 231,
+    "6992068076_233": 234,
+    "6992068076_235": 236,
+    "6904915229_237": 239,
+    "6992068076_240": 241
+  }
+}

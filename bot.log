@@ -1,0 +1,201 @@
+2025-07-29 13:28:24,943 - __main__ - ERROR - Fatal error: API_ID is required and must be a valid integer
+2025-07-29 13:29:59,445 - __main__ - ERROR - Fatal error: API_ID is required and must be a valid integer
+2025-07-29 13:32:31,914 - __main__ - INFO - Starting YukkiChatBot...
+2025-07-29 13:32:32,278 - pyrogram.session.auth - INFO - Start creating a new auth key on DC2
+2025-07-29 13:32:32,278 - pyrogram.connection.connection - INFO - Connecting...
+2025-07-29 13:32:32,381 - pyrogram.connection.connection - INFO - Connected! Production DC2 - IPv4
+2025-07-29 13:32:33,872 - pyrogram.session.auth - INFO - Done auth key exchange: DhGenOk
+2025-07-29 13:32:33,873 - pyrogram.connection.connection - INFO - Disconnected
+2025-07-29 13:32:33,893 - pyrogram.connection.connection - INFO - Connecting...
+2025-07-29 13:32:33,997 - pyrogram.connection.connection - INFO - Connected! Production DC2 - IPv4
+2025-07-29 13:32:33,997 - pyrogram.session.session - INFO - NetworkTask started
+2025-07-29 13:32:34,474 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2025-07-29 13:32:34,474 - pyrogram.session.session - INFO - Device: CPython 3.11.13 - Pyrogram 2.0.106
+2025-07-29 13:32:34,474 - pyrogram.session.session - INFO - System: Linux 6.2.16 (en)
+2025-07-29 13:32:34,475 - pyrogram.session.session - INFO - Session started
+2025-07-29 13:32:34,476 - pyrogram.session.session - INFO - PingTask started
+2025-07-29 13:32:34,620 - pyrogram.session.session - INFO - PingTask stopped
+2025-07-29 13:32:34,620 - pyrogram.connection.connection - INFO - Disconnected
+2025-07-29 13:32:34,620 - pyrogram.session.session - INFO - NetworkTask stopped
+2025-07-29 13:32:34,620 - pyrogram.session.session - INFO - Session stopped
+2025-07-29 13:32:34,636 - pyrogram.session.auth - INFO - Start creating a new auth key on DC4
+2025-07-29 13:32:34,637 - pyrogram.connection.connection - INFO - Connecting...
+2025-07-29 13:32:34,740 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2025-07-29 13:32:36,533 - pyrogram.session.auth - INFO - Done auth key exchange: DhGenOk
+2025-07-29 13:32:36,534 - pyrogram.connection.connection - INFO - Disconnected
+2025-07-29 13:32:36,553 - pyrogram.connection.connection - INFO - Connecting...
+2025-07-29 13:32:36,655 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2025-07-29 13:32:36,656 - pyrogram.session.session - INFO - NetworkTask started
+2025-07-29 13:32:37,118 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2025-07-29 13:32:37,118 - pyrogram.session.session - INFO - Device: CPython 3.11.13 - Pyrogram 2.0.106
+2025-07-29 13:32:37,119 - pyrogram.session.session - INFO - System: Linux 6.2.16 (en)
+2025-07-29 13:32:37,119 - pyrogram.session.session - INFO - Session started
+2025-07-29 13:32:37,120 - pyrogram.session.session - INFO - PingTask started
+2025-07-29 13:32:37,517 - pyrogram.dispatcher - INFO - Started 12 HandlerTasks
+2025-07-29 13:32:37,635 - __main__ - INFO - Bot started successfully: @Daawofilmsbot
+2025-07-29 13:32:37,635 - storage - INFO - No existing data file found, starting fresh
+2025-07-29 13:32:37,635 - __main__ - INFO - Storage data loaded successfully
+2025-07-29 13:33:11,427 - handlers - INFO - User 1096693642 started the bot
+2025-07-29 13:34:22,553 - handlers - INFO - User 6992068076 started the bot
+2025-07-29 13:34:32,268 - handlers - ERROR - Error forwarding message to admin: Telegram says: [400 ENTITY_BOUNDS_INVALID] - The message entity bounds are invalid (caused by "messages.SendMessage")
+2025-07-29 13:34:37,141 - handlers - ERROR - Error forwarding message to admin: Telegram says: [400 ENTITY_BOUNDS_INVALID] - The message entity bounds are invalid (caused by "messages.SendMessage")
+2025-07-29 13:34:40,626 - handlers - ERROR - Error forwarding message to admin: Telegram says: [400 ENTITY_BOUNDS_INVALID] - The message entity bounds are invalid (caused by "messages.SendMessage")
+2025-07-29 13:39:16,559 - __main__ - INFO - Starting YukkiChatBot...
+2025-07-29 13:39:16,785 - pyrogram.connection.connection - INFO - Connecting...
+2025-07-29 13:39:16,891 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2025-07-29 13:39:16,891 - pyrogram.session.session - INFO - NetworkTask started
+2025-07-29 13:39:17,361 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2025-07-29 13:39:17,361 - pyrogram.session.session - INFO - Device: CPython 3.11.13 - Pyrogram 2.0.106
+2025-07-29 13:39:17,361 - pyrogram.session.session - INFO - System: Linux 6.2.16 (en)
+2025-07-29 13:39:17,361 - pyrogram.session.session - INFO - Session started
+2025-07-29 13:39:17,364 - pyrogram.session.session - INFO - PingTask started
+2025-07-29 13:39:17,604 - pyrogram.dispatcher - INFO - Started 12 HandlerTasks
+2025-07-29 13:39:17,725 - __main__ - INFO - Bot started successfully: @Daawofilmsbot
+2025-07-29 13:39:17,725 - storage - INFO - No existing data file found, starting fresh
+2025-07-29 13:39:17,726 - __main__ - INFO - Storage data loaded successfully
+2025-07-29 13:49:53,257 - __main__ - INFO - Starting YukkiChatBot...
+2025-07-29 13:49:53,618 - pyrogram.connection.connection - INFO - Connecting...
+2025-07-29 13:49:53,722 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2025-07-29 13:49:53,724 - pyrogram.session.session - INFO - NetworkTask started
+2025-07-29 13:49:54,191 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2025-07-29 13:49:54,191 - pyrogram.session.session - INFO - Device: CPython 3.11.13 - Pyrogram 2.0.106
+2025-07-29 13:49:54,191 - pyrogram.session.session - INFO - System: Linux 6.2.16 (en)
+2025-07-29 13:49:54,191 - pyrogram.session.session - INFO - Session started
+2025-07-29 13:49:54,193 - pyrogram.session.session - INFO - PingTask started
+2025-07-29 13:49:54,434 - pyrogram.dispatcher - INFO - Started 12 HandlerTasks
+2025-07-29 13:49:54,622 - __main__ - INFO - Bot started successfully: @Daawofilmsbot
+2025-07-29 13:49:54,622 - storage - INFO - Loaded data for 1 users
+2025-07-29 13:49:54,622 - __main__ - INFO - Storage data loaded successfully
+2025-07-29 13:51:04,486 - __main__ - INFO - Starting YukkiChatBot...
+2025-07-29 13:51:04,720 - pyrogram.connection.connection - INFO - Connecting...
+2025-07-29 13:51:04,823 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2025-07-29 13:51:04,824 - pyrogram.session.session - INFO - NetworkTask started
+2025-07-29 13:51:05,287 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2025-07-29 13:51:05,287 - pyrogram.session.session - INFO - Device: CPython 3.11.13 - Pyrogram 2.0.106
+2025-07-29 13:51:05,288 - pyrogram.session.session - INFO - System: Linux 6.2.16 (en)
+2025-07-29 13:51:05,288 - pyrogram.session.session - INFO - Session started
+2025-07-29 13:51:05,289 - pyrogram.session.session - INFO - PingTask started
+2025-07-29 13:51:05,532 - pyrogram.dispatcher - INFO - Started 12 HandlerTasks
+2025-07-29 13:51:05,655 - __main__ - INFO - Bot started successfully: @Daawofilmsbot
+2025-07-29 13:51:05,655 - storage - INFO - Loaded data for 1 users
+2025-07-29 13:51:05,656 - __main__ - INFO - Storage data loaded successfully
+2025-07-29 13:51:31,426 - __main__ - INFO - Starting YukkiChatBot...
+2025-07-29 13:51:31,752 - pyrogram.connection.connection - INFO - Connecting...
+2025-07-29 13:51:31,861 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2025-07-29 13:51:31,862 - pyrogram.session.session - INFO - NetworkTask started
+2025-07-29 13:51:32,331 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2025-07-29 13:51:32,332 - pyrogram.session.session - INFO - Device: CPython 3.11.13 - Pyrogram 2.0.106
+2025-07-29 13:51:32,332 - pyrogram.session.session - INFO - System: Linux 6.2.16 (en)
+2025-07-29 13:51:32,332 - pyrogram.session.session - INFO - Session started
+2025-07-29 13:51:32,334 - pyrogram.session.session - INFO - PingTask started
+2025-07-29 13:51:32,600 - pyrogram.dispatcher - INFO - Started 12 HandlerTasks
+2025-07-29 13:51:32,760 - __main__ - INFO - Bot started successfully: @Daawofilmsbot
+2025-07-29 13:51:32,760 - storage - INFO - Loaded data for 1 users
+2025-07-29 13:51:32,760 - __main__ - INFO - Storage data loaded successfully
+2025-07-29 13:52:10,469 - handlers - INFO - User 6992068076 started the bot
+2025-07-29 13:53:27,545 - pyrogram.session.session - INFO - NetworkTask stopped
+2025-07-29 13:53:27,545 - pyrogram.session.session - INFO - PingTask stopped
+2025-07-29 13:53:27,546 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [Errno 104] Connection reset by peer
+2025-07-29 13:53:27,546 - pyrogram.connection.connection - INFO - Disconnected
+2025-07-29 13:53:27,546 - pyrogram.session.session - INFO - Session stopped
+2025-07-29 13:53:27,546 - pyrogram.connection.connection - INFO - Connecting...
+2025-07-29 13:53:27,649 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2025-07-29 13:53:27,649 - pyrogram.session.session - INFO - NetworkTask started
+2025-07-29 13:53:28,015 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2025-07-29 13:53:28,015 - pyrogram.session.session - INFO - Device: CPython 3.11.13 - Pyrogram 2.0.106
+2025-07-29 13:53:28,015 - pyrogram.session.session - INFO - System: Linux 6.2.16 (en)
+2025-07-29 13:53:28,015 - pyrogram.session.session - INFO - Session started
+2025-07-29 13:53:28,015 - pyrogram.session.session - INFO - PingTask started
+2025-07-29 13:59:18,493 - __main__ - INFO - Starting YukkiChatBot...
+2025-07-29 13:59:18,798 - pyrogram.connection.connection - INFO - Connecting...
+2025-07-29 13:59:18,901 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2025-07-29 13:59:18,902 - pyrogram.session.session - INFO - NetworkTask started
+2025-07-29 13:59:19,369 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2025-07-29 13:59:19,369 - pyrogram.session.session - INFO - Device: CPython 3.11.13 - Pyrogram 2.0.106
+2025-07-29 13:59:19,370 - pyrogram.session.session - INFO - System: Linux 6.2.16 (en)
+2025-07-29 13:59:19,370 - pyrogram.session.session - INFO - Session started
+2025-07-29 13:59:19,372 - pyrogram.session.session - INFO - PingTask started
+2025-07-29 13:59:19,723 - pyrogram.dispatcher - INFO - Started 12 HandlerTasks
+2025-07-29 13:59:19,845 - __main__ - INFO - Bot started successfully: @Daawofilmsbot
+2025-07-29 13:59:19,845 - storage - INFO - Loaded data for 1 users
+2025-07-29 13:59:19,845 - __main__ - INFO - Storage data loaded successfully
+2025-07-29 14:00:12,419 - handlers - INFO - User 5616403687 started the bot
+2025-07-29 14:02:46,702 - __main__ - INFO - Starting YukkiChatBot...
+2025-07-29 14:02:46,893 - pyrogram.connection.connection - INFO - Connecting...
+2025-07-29 14:02:46,996 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2025-07-29 14:02:46,997 - pyrogram.session.session - INFO - NetworkTask started
+2025-07-29 14:02:47,461 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2025-07-29 14:02:47,461 - pyrogram.session.session - INFO - Device: CPython 3.11.13 - Pyrogram 2.0.106
+2025-07-29 14:02:47,461 - pyrogram.session.session - INFO - System: Linux 6.2.16 (en)
+2025-07-29 14:02:47,461 - pyrogram.session.session - INFO - Session started
+2025-07-29 14:02:47,463 - pyrogram.session.session - INFO - PingTask started
+2025-07-29 14:02:47,706 - pyrogram.dispatcher - INFO - Started 12 HandlerTasks
+2025-07-29 14:02:47,840 - __main__ - INFO - Bot started successfully: @Daawofilmsbot
+2025-07-29 14:02:47,840 - storage - INFO - Loaded data for 2 users
+2025-07-29 14:02:47,840 - __main__ - INFO - Storage data loaded successfully
+2025-07-29 14:03:35,764 - handlers - INFO - User 6904915229 started the bot
+2025-07-29 14:09:46,684 - __main__ - INFO - Starting YukkiChatBot...
+2025-07-29 14:09:46,952 - pyrogram.connection.connection - INFO - Connecting...
+2025-07-29 14:09:47,056 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2025-07-29 14:09:47,058 - pyrogram.session.session - INFO - NetworkTask started
+2025-07-29 14:09:47,522 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2025-07-29 14:09:47,523 - pyrogram.session.session - INFO - Device: CPython 3.11.13 - Pyrogram 2.0.106
+2025-07-29 14:09:47,523 - pyrogram.session.session - INFO - System: Linux 6.2.16 (en)
+2025-07-29 14:09:47,523 - pyrogram.session.session - INFO - Session started
+2025-07-29 14:09:47,525 - pyrogram.session.session - INFO - PingTask started
+2025-07-29 14:09:47,804 - pyrogram.dispatcher - INFO - Started 12 HandlerTasks
+2025-07-29 14:09:47,970 - __main__ - INFO - Bot started successfully: @Daawofilmsbot
+2025-07-29 14:09:47,973 - storage - INFO - Loaded data for 3 users
+2025-07-29 14:09:47,973 - __main__ - INFO - Storage data loaded successfully
+2025-07-29 14:15:06,272 - __main__ - INFO - Starting YukkiChatBot...
+2025-07-29 14:15:06,535 - pyrogram.connection.connection - INFO - Connecting...
+2025-07-29 14:15:06,641 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2025-07-29 14:15:06,642 - pyrogram.session.session - INFO - NetworkTask started
+2025-07-29 14:15:07,126 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2025-07-29 14:15:07,126 - pyrogram.session.session - INFO - Device: CPython 3.11.13 - Pyrogram 2.0.106
+2025-07-29 14:15:07,126 - pyrogram.session.session - INFO - System: Linux 6.2.16 (en)
+2025-07-29 14:15:07,126 - pyrogram.session.session - INFO - Session started
+2025-07-29 14:15:07,128 - pyrogram.session.session - INFO - PingTask started
+2025-07-29 14:15:07,376 - pyrogram.dispatcher - INFO - Started 12 HandlerTasks
+2025-07-29 14:15:07,511 - __main__ - INFO - Bot started successfully: @Daawofilmsbot
+2025-07-29 14:15:07,511 - storage - INFO - Loaded data for 3 users
+2025-07-29 14:15:07,512 - __main__ - INFO - Storage data loaded successfully
+2025-07-29 14:19:06,686 - __main__ - INFO - Starting YukkiChatBot...
+2025-07-29 14:19:06,915 - pyrogram.connection.connection - INFO - Connecting...
+2025-07-29 14:19:07,018 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2025-07-29 14:19:07,020 - pyrogram.session.session - INFO - NetworkTask started
+2025-07-29 14:19:07,508 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2025-07-29 14:19:07,509 - pyrogram.session.session - INFO - Device: CPython 3.11.13 - Pyrogram 2.0.106
+2025-07-29 14:19:07,509 - pyrogram.session.session - INFO - System: Linux 6.2.16 (en)
+2025-07-29 14:19:07,509 - pyrogram.session.session - INFO - Session started
+2025-07-29 14:19:07,511 - pyrogram.session.session - INFO - PingTask started
+2025-07-29 14:19:07,762 - pyrogram.dispatcher - INFO - Started 12 HandlerTasks
+2025-07-29 14:19:07,891 - __main__ - INFO - Bot started successfully: @Daawofilmsbot
+2025-07-29 14:19:07,891 - storage - INFO - Loaded data for 3 users
+2025-07-29 14:19:07,891 - __main__ - INFO - Storage data loaded successfully
+2025-07-29 14:22:19,176 - __main__ - INFO - Starting YukkiChatBot...
+2025-07-29 14:22:19,379 - pyrogram.connection.connection - INFO - Connecting...
+2025-07-29 14:22:19,482 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2025-07-29 14:22:19,483 - pyrogram.session.session - INFO - NetworkTask started
+2025-07-29 14:22:19,958 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2025-07-29 14:22:19,958 - pyrogram.session.session - INFO - Device: CPython 3.11.13 - Pyrogram 2.0.106
+2025-07-29 14:22:19,958 - pyrogram.session.session - INFO - System: Linux 6.2.16 (en)
+2025-07-29 14:22:19,958 - pyrogram.session.session - INFO - Session started
+2025-07-29 14:22:19,961 - pyrogram.session.session - INFO - PingTask started
+2025-07-29 14:22:20,200 - pyrogram.dispatcher - INFO - Started 12 HandlerTasks
+2025-07-29 14:22:20,324 - __main__ - INFO - Bot started successfully: @Daawofilmsbot
+2025-07-29 14:22:20,324 - storage - INFO - Loaded data for 3 users
+2025-07-29 14:22:20,324 - __main__ - INFO - Storage data loaded successfully
+2025-07-29 14:25:10,734 - __main__ - INFO - Starting YukkiChatBot...
+2025-07-29 14:25:10,953 - pyrogram.connection.connection - INFO - Connecting...
+2025-07-29 14:25:11,056 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2025-07-29 14:25:11,058 - pyrogram.session.session - INFO - NetworkTask started
+2025-07-29 14:25:11,524 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2025-07-29 14:25:11,524 - pyrogram.session.session - INFO - Device: CPython 3.11.13 - Pyrogram 2.0.106
+2025-07-29 14:25:11,524 - pyrogram.session.session - INFO - System: Linux 6.2.16 (en)
+2025-07-29 14:25:11,524 - pyrogram.session.session - INFO - Session started
+2025-07-29 14:25:11,527 - pyrogram.session.session - INFO - PingTask started
+2025-07-29 14:25:11,778 - pyrogram.dispatcher - INFO - Started 12 HandlerTasks
+2025-07-29 14:25:11,916 - __main__ - INFO - Bot started successfully: @Daawofilmsbot
+2025-07-29 14:25:11,917 - storage - INFO - Loaded data for 3 users
+2025-07-29 14:25:11,917 - __main__ - INFO - Storage data loaded successfully
